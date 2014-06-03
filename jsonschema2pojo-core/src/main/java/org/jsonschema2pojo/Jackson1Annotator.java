@@ -58,6 +58,11 @@ public class Jackson1Annotator implements Annotator {
     }
 
     @Override
+    public void objectBuilder(JDefinedClass clazz, JDefinedClass builder) {
+        clazz.annotate(JsonDeserialize.class).param("builder", builder);
+    }
+
+    @Override
     public void propertyField(JFieldVar field, JDefinedClass clazz, String propertyName, JsonNode propertyNode) {
         field.annotate(JsonProperty.class).param("value", propertyName);
         if (field.type().erasure().equals(field.type().owner().ref(Set.class))) {

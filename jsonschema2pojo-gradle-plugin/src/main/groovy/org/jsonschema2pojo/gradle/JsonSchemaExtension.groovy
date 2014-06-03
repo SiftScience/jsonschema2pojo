@@ -32,6 +32,9 @@ import org.jsonschema2pojo.rules.RuleFactory
  */
 public class JsonSchemaExtension implements GenerationConfig {
   boolean generateBuilders
+  boolean generateBuilderClasses
+  boolean immutable
+  boolean usePublicFields
   boolean usePrimitives
   Iterable<File> sourceFiles
   File targetDirectory
@@ -56,6 +59,9 @@ public class JsonSchemaExtension implements GenerationConfig {
   public JsonSchemaExtension() {
     // See DefaultGenerationConfig
     generateBuilders = false
+    generateBuilderClasses = false
+    immutable = false
+    usePublicFields = false
     usePrimitives = false
     sourceFiles = []
     targetPackage = ''
@@ -106,6 +112,9 @@ public class JsonSchemaExtension implements GenerationConfig {
   @Override
   public String toString() {
     """|generateBuilders = ${generateBuilders}
+       |generateBuilderClasses = ${generateBuilderClasses}
+       |immutable = ${immutable}
+       |usePublicFields = ${usePublicFields}
        |usePrimitives = ${usePrimitives}
        |source = ${sourceFiles}
        |targetDirectory = ${targetDirectory}
