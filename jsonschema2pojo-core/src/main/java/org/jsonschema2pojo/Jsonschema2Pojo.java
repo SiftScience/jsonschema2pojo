@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2013 Nokia
+ * Copyright © 2010-2014 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.jsonschema2pojo;
 
-import static org.apache.commons.lang3.StringUtils.defaultString;
-import static org.apache.commons.lang3.StringUtils.substringBeforeLast;
-
+import com.sun.codemodel.CodeWriter;
+import com.sun.codemodel.JCodeModel;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -26,13 +26,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import static org.apache.commons.lang3.StringUtils.defaultString;
+import static org.apache.commons.lang3.StringUtils.substringBeforeLast;
 
 import org.jsonschema2pojo.FileCodeWriterWithEncoding;
 import org.jsonschema2pojo.exception.GenerationException;
 import org.jsonschema2pojo.rules.RuleFactory;
-
-import com.sun.codemodel.CodeWriter;
-import com.sun.codemodel.JCodeModel;
 
 public class Jsonschema2Pojo {
     /**
@@ -49,7 +48,12 @@ public class Jsonschema2Pojo {
      */
     public static void generate(GenerationConfig config) throws FileNotFoundException, IOException {
         Annotator annotator = getAnnotator(config);
-        SchemaMapper mapper = new SchemaMapper(new RuleFactory(config, annotator, new SchemaStore()), new SchemaGenerator());
+        RuleFactory ruleFactory = createRuleFactory(config);
+
+        ruleFactory.setAnnotator(annotator);
+        ruleFactory.setGenerationConfig(config);
+
+        SchemaMapper mapper = new SchemaMapper(ruleFactory, new SchemaGenerator());
 
         JCodeModel codeModel = new JCodeModel();
 
@@ -73,6 +77,22 @@ public class Jsonschema2Pojo {
             codeModel.build(sourcesWriter, resourcesWriter);
         } else {
             throw new GenerationException("Could not create or access target directory " + config.getTargetDirectory().getAbsolutePath());
+        }
+    }
+
+    private static RuleFactory createRuleFactory(GenerationConfig config) {
+        Class<? extends RuleFactory> clazz = config.getCustomRuleFactory();
+
+        if (!RuleFactory.class.isAssignableFrom(clazz)) {
+            throw new IllegalArgumentException("The class name given as a rule factory  (" + clazz.getName() + ") does not refer to a class that implements " + RuleFactory.class.getName());
+        }
+
+        try {
+            return clazz.newInstance();
+        } catch (InstantiationException e) {
+            throw new IllegalArgumentException("Failed to create a rule factory from the given class. An exception was thrown on trying to create a new instance.", e.getCause());
+        } catch (IllegalAccessException e) {
+            throw new IllegalArgumentException("Failed to create a rule factory from the given class. It appears that we do not have access to this class - is both the class and its no-arg constructor marked public?", e);
         }
     }
 

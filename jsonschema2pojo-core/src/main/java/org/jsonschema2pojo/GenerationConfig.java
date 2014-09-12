@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2013 Nokia
+ * Copyright © 2010-2014 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.jsonschema2pojo;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Iterator;
+import org.jsonschema2pojo.rules.RuleFactory;
 
 /**
  * Defines the configuration options for Java type generation, including source
@@ -148,6 +149,13 @@ public interface GenerationConfig {
     Class<? extends Annotator> getCustomAnnotator();
 
     /**
+     * Gets the 'customRuleFactory' configuration option.
+     *
+     * @return An Rule Factory that will be used for the creation of generation rules.
+     */
+    Class<? extends RuleFactory> getCustomRuleFactory();
+
+    /**
      * Gets the 'includeJsr303Annotations' configuration option.
      * 
      * @return Whether to include <a
@@ -213,5 +221,11 @@ public interface GenerationConfig {
      * @return the file filter use when scanning for schema files.
      */
     FileFilter getFileFilter();
-    
+
+    /**
+     * Gets the 'initializeCollections' configuration option.
+     *
+     * @return Whether to initialize collections with empty instance or null.
+     */
+    boolean isInitializeCollections();
 }

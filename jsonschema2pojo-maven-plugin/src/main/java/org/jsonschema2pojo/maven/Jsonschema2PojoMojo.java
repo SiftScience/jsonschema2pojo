@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2013 Nokia
+ * Copyright © 2010-2014 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.jsonschema2pojo.GenerationConfig;
 import org.jsonschema2pojo.Jsonschema2Pojo;
 import org.jsonschema2pojo.NoopAnnotator;
 import org.jsonschema2pojo.SourceType;
+import org.jsonschema2pojo.rules.RuleFactory;
 
 /**
  * When invoked, this goal reads one or more <a
@@ -226,6 +227,17 @@ public class Jsonschema2PojoMojo extends AbstractMojo implements GenerationConfi
     private String customAnnotator = NoopAnnotator.class.getName();
 
     /**
+     * A fully qualified class name, referring to an class that extends
+     * <code>org.jsonschema2pojo.rules.RuleFactory</code> and will be used to
+     * create instances of Rules used for code generation.
+     *
+     * @parameter expression="${jsonschema2pojo.customRuleFactory}"
+     *            default-value="org.jsonschema2pojo.rules.RuleFactory"
+     * @since 0.4.5
+     */
+    private String customRuleFactory = RuleFactory.class.getName();
+
+    /**
      * Whether to include <a
      * href="http://jcp.org/en/jsr/detail?id=303">JSR-303</a> annotations (for
      * schema rules like minimum, maximum, etc) in generated Java types.
@@ -308,6 +320,14 @@ public class Jsonschema2PojoMojo extends AbstractMojo implements GenerationConfi
      * @since 0.4.1
      */
     private boolean useCommonsLang3 = false;
+
+    /**
+     * Whether to initialize Set and List fields as empty collections, or leave them as <code>null</code>.
+     *
+     * @parameter expression="${jsonschema2pojo.initializeCollections}" default="true"
+     * @since
+     */
+    private boolean initializeCollections = true;
 
     /**
      * List of file patterns to include.
@@ -479,6 +499,20 @@ public class Jsonschema2PojoMojo extends AbstractMojo implements GenerationConfi
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public Class<? extends RuleFactory> getCustomRuleFactory() {
+        if (isNotBlank(customRuleFactory)) {
+            try {
+                return (Class<? extends RuleFactory>) Class.forName(customRuleFactory);
+            } catch (ClassNotFoundException e) {
+                throw new IllegalArgumentException(e);
+            }
+        } else {
+            return RuleFactory.class;
+        }
+    }
+
+    @Override
     public boolean isIncludeJsr303Annotations() {
         return includeJsr303Annotations;
     }
@@ -511,6 +545,11 @@ public class Jsonschema2PojoMojo extends AbstractMojo implements GenerationConfi
     @Override
     public FileFilter getFileFilter() {
         return fileFilter;
+    }
+
+    @Override
+    public boolean isInitializeCollections() {
+        return initializeCollections;
     }
 
     boolean filteringEnabled() {

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2013 Nokia
+ * Copyright © 2010-2014 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,17 @@
 
 package org.jsonschema2pojo;
 
-import java.io.IOException;
-import java.net.URL;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.jsonschema2pojo.rules.RuleFactory;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JType;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
+import org.jsonschema2pojo.rules.RuleFactory;
 
 /**
  * Generates Java types from a JSON schema. Can accept a factory which will be
@@ -100,5 +102,28 @@ public class SchemaMapper {
                 throw new IllegalArgumentException("Unrecognised source type: " + ruleFactory.getGenerationConfig().getSourceType());
         }
 
+    }
+
+    public JType generate(JCodeModel codeModel, String className, String packageName, String json, 
+            URI schemaLocation) throws IOException {
+
+        JPackage jpackage = codeModel._package(packageName);
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode schemaNode = mapper.readTree(json);
+
+        return ruleFactory.getSchemaRule().apply(className, schemaNode, jpackage, 
+                new Schema(schemaLocation, schemaNode));
+    }
+
+    public JType generate(JCodeModel codeModel, String className, String packageName, String json) throws IOException {
+
+        JPackage jpackage = codeModel._package(packageName);
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode schemaNode = mapper.readTree(json);
+
+        return ruleFactory.getSchemaRule().apply(className, schemaNode, jpackage, 
+                new Schema(null, schemaNode));
     }
 }

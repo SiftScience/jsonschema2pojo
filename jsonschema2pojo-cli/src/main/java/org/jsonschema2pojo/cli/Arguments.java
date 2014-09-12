@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2013 Nokia
+ * Copyright © 2010-2014 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.converters.FileConverter;
+import org.jsonschema2pojo.rules.RuleFactory;
 
 /**
  * Describes and parses the command line arguments supported by the
@@ -82,6 +83,11 @@ public class Arguments implements GenerationConfig {
             converter = ClassConverter.class)
     private Class<? extends Annotator> customAnnotator = NoopAnnotator.class;
 
+    @Parameter(names = { "-F", "--custom-rule-factory" }, description = "The fully qualified class name of referring to a custom rule factory class that extends org.jsonschema2pojo.rules.RuleFactory " +
+            "to create custom rules for code generation.",
+            converter = ClassConverter.class)
+    private Class<? extends RuleFactory> customRuleFactory = RuleFactory.class;
+
     @Parameter(names = { "-303", "--jsr303-annotations" }, description = "Add JSR-303 annotations to generated Java types.")
     private boolean includeJsr303Annotations = false;
 
@@ -99,6 +105,9 @@ public class Arguments implements GenerationConfig {
 
     @Parameter(names = { "-c3", "--commons-lang3" }, description = "Whether to use commons-lang 3.x imports instead of commons-lang 2.x imports when adding equals, hashCode and toString methods.")
     private boolean useCommonsLang3 = false;
+
+    @Parameter(names = { "-N", "--null-collections" }, description = "Initialize Set and List fields to null instead of an empty collection.")
+    private boolean nullCollections = false;
 
     private static final int EXIT_OKAY = 0;
     private static final int EXIT_ERROR = 1;
@@ -196,6 +205,9 @@ public class Arguments implements GenerationConfig {
     }
 
     @Override
+    public Class<? extends RuleFactory> getCustomRuleFactory() { return customRuleFactory; }
+
+    @Override
     public boolean isIncludeJsr303Annotations() {
         return includeJsr303Annotations;
     }
@@ -232,6 +244,11 @@ public class Arguments implements GenerationConfig {
     @Override
     public FileFilter getFileFilter() {
         return new AllFileFilter();
+    }
+
+    @Override
+    public boolean isInitializeCollections() {
+        return !nullCollections;
     }
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2013 Nokia
+ * Copyright © 2010-2014 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -172,6 +172,8 @@ public class DefaultRule implements Rule<JFieldVar, JFieldVar> {
                 invokeAsList.arg(getDefaultValue(listGenericType, defaultValue));
             }
             newListImpl.arg(invokeAsList);
+        } else if (!ruleFactory.getGenerationConfig().isInitializeCollections()) {
+            return JExpr._null();
         }
 
         return newListImpl;
@@ -203,12 +205,14 @@ public class DefaultRule implements Rule<JFieldVar, JFieldVar> {
 
         JInvocation newSetImpl = JExpr._new(setImplClass);
 
-        if (node instanceof ArrayNode) {
+        if (node instanceof ArrayNode && node.size() > 0) {
             JInvocation invokeAsList = fieldType.owner().ref(Arrays.class).staticInvoke("asList");
             for (JsonNode defaultValue : node) {
                 invokeAsList.arg(getDefaultValue(setGenericType, defaultValue));
             }
             newSetImpl.arg(invokeAsList);
+        } else if (!ruleFactory.getGenerationConfig().isInitializeCollections()) {
+            return JExpr._null();
         }
 
         return newSetImpl;

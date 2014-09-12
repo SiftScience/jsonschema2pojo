@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2013 Nokia
+ * Copyright © 2010-2014 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.jsonschema2pojo;
+
+import org.jsonschema2pojo.rules.RuleFactory;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -118,6 +120,11 @@ public class DefaultGenerationConfig implements GenerationConfig {
         return NoopAnnotator.class;
     }
 
+    @Override
+    public Class<? extends RuleFactory> getCustomRuleFactory() {
+        return RuleFactory.class;
+    }
+
     /**
      * @return <code>false</code>
      */
@@ -157,7 +164,7 @@ public class DefaultGenerationConfig implements GenerationConfig {
     public boolean isUseJodaDates() {
         return false;
     }
-    
+
     @Override
     public boolean isUseCommonsLang3() {
         return false;
@@ -166,5 +173,13 @@ public class DefaultGenerationConfig implements GenerationConfig {
     @Override
     public FileFilter getFileFilter() {
         return new AllFileFilter();
+    }
+
+    /**
+     * @return <code>true</code>
+     */
+    @Override
+    public boolean isInitializeCollections() {
+        return true;
     }
 }

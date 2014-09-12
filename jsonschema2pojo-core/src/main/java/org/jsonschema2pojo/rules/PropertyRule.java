@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2013 Nokia
+ * Copyright © 2010-2014 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,6 +143,9 @@ public class PropertyRule implements Rule<JDefinedClass, JDefinedClass> {
     private JMethod addGetter(JDefinedClass c, JFieldVar field, String jsonPropertyName) {
         JMethod getter = c.method(JMod.PUBLIC, field.type(), getGetterName(jsonPropertyName, field.type()));
 
+        // add @returns
+        getter.javadoc().addReturn().append("The " + getPropertyName(jsonPropertyName));
+
         JBlock body = getter.body();
         body._return(field);
 
@@ -153,6 +156,9 @@ public class PropertyRule implements Rule<JDefinedClass, JDefinedClass> {
 
     private JMethod addSetter(JDefinedClass c, JFieldVar field, String jsonPropertyName) {
         JMethod setter = c.method(JMod.PUBLIC, void.class, getSetterName(jsonPropertyName));
+
+        // add @param
+        setter.javadoc().addParam(getPropertyName(jsonPropertyName)).append("The " + jsonPropertyName);
 
         JVar param = setter.param(field.type(), field.name());
         JBlock body = setter.body();
@@ -176,7 +182,7 @@ public class PropertyRule implements Rule<JDefinedClass, JDefinedClass> {
 
     private String getPropertyName(String nodeName) {
         nodeName = ruleFactory.getNameHelper().replaceIllegalCharacters(nodeName);
-        nodeName = ruleFactory.getNameHelper().normalizeName(nodeName, false);
+        nodeName = ruleFactory.getNameHelper().normalizeName(nodeName);
 
         if (isKeyword(nodeName)) {
             nodeName = "_" + nodeName;

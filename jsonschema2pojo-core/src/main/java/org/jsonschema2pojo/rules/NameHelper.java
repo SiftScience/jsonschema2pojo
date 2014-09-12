@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2013 Nokia
+ * Copyright © 2010-2014 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,18 +37,12 @@ public class NameHelper {
         return name.replaceAll(ILLEGAL_CHARACTER_REGEX, "_");
     }
 
-    public String normalizeName(String name, boolean isClass) {
+    public String normalizeName(String name) {
         name = capitalizeTrailingWords(name);
 
         if (isDigit(name.charAt(0))) {
             name = "_" + name;
         }
-
-        // Class names should start with uppercase letters,
-        // while property names should start with lovercase (see issue #129)
-        name = 
-            	(isClass ? toUpperCase(name.charAt(0)) : toLowerCase(name.charAt(0))) 
-            	+ (name.length() > 1 ? name.substring(1) : "");
 
         return name;
     }

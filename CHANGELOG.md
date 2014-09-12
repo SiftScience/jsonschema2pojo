@@ -1,10 +1,31 @@
 # Changelog
 
+## 0.4.5
+* Allow sets to have an \[ \] \(empty\) default value ([#232](https://github.com/joelittlejohn/jsonschema2pojo/pull/232))
+* Use LinkedHashSet when deserializing Set to preserve order ([#227](https://github.com/joelittlejohn/jsonschema2pojo/pull/227))
+* Allow SchemaMapper to generate from String and not only URL ([#221](https://github.com/joelittlejohn/jsonschema2pojo/pull/221))
+* Generate @Param and @Returns javadoc ([#219](https://github.com/joelittlejohn/jsonschema2pojo/pull/219))
+* Creating a list of objects with class name as “S” ([#213](https://github.com/joelittlejohn/jsonschema2pojo/issues/213))
+* Add 'customRuleFactory' config option for pluggable RuleFactory ([#211](https://github.com/joelittlejohn/jsonschema2pojo/pull/211))
+
+## 0.4.4
+* Added ')' to jdk unbounded range for Maven 2.X ([#205](https://github.com/joelittlejohn/jsonschema2pojo/pull/205))
+* Allow Sets and Lists to be initialized to null (instead of an empty collection) ([#203](https://github.com/joelittlejohn/jsonschema2pojo/pull/203))
+
+## 0.4.3
+* Add includes & excludes Maven config options for source file filtering ([#200](https://github.com/joelittlejohn/jsonschema2pojo/pull/200))
+* Reorganise module dependencies, pull CLI out from under other plugins ([#198](https://github.com/joelittlejohn/jsonschema2pojo/pull/198))
+* "properties" property implies "type": "object" ([#192](https://github.com/joelittlejohn/jsonschema2pojo/issues/192))
+* Preserve casing of field names ([#187](https://github.com/joelittlejohn/jsonschema2pojo/issues/187))
+* sourceType = 'json' is ignored by Gradle plugin ([#184](https://github.com/joelittlejohn/jsonschema2pojo/issues/184))
+* Handling local references on jsonschema2pojo.org ([#183](https://github.com/joelittlejohn/jsonschema2pojo/issues/183))
+
 ## 0.4.2
 * Builder Method for Additional Properties ([#175](https://github.com/joelittlejohn/jsonschema2pojo/pull/175))
 * javaInterfaces extension property is ignored for Enum types ([#172](https://github.com/joelittlejohn/jsonschema2pojo/issues/172))
 * Binary property support ([#171](https://github.com/joelittlejohn/jsonschema2pojo/pull/171))
 * Support annotating additionalProperties field. ([#170](https://github.com/joelittlejohn/jsonschema2pojo/pull/170))
+* customAnnotator shows 'dynamic properties deprecated' warning when using Gradle plugin ([#163](https://github.com/joelittlejohn/jsonschema2pojo/issues/163))
 
 ## 0.4.1
 * Switch from HashSet to LinkedHashSet for uniqueItems arrays to preserve order ([#159](https://github.com/joelittlejohn/jsonschema2pojo/issues/159))

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2013 Nokia
+ * Copyright © 2010-2014 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.jsonschema2pojo.AllFileFilter
 import org.jsonschema2pojo.GenerationConfig
 import org.jsonschema2pojo.NoopAnnotator
 import org.jsonschema2pojo.SourceType
+import org.jsonschema2pojo.rules.RuleFactory
 
 /**
  * The configuration properties.
@@ -42,6 +43,7 @@ public class JsonSchemaExtension implements GenerationConfig {
   boolean includeToString
   AnnotationStyle annotationStyle
   Class<? extends Annotator> customAnnotator
+  Class<? extends RuleFactory> customRuleFactory
   boolean includeJsr303Annotations
   SourceType sourceType
   boolean removeOldOutput
@@ -49,6 +51,7 @@ public class JsonSchemaExtension implements GenerationConfig {
   boolean useJodaDates
   boolean useCommonsLang3
   FileFilter fileFilter
+  boolean initializeCollections
 
   public JsonSchemaExtension() {
     // See DefaultGenerationConfig
@@ -63,12 +66,14 @@ public class JsonSchemaExtension implements GenerationConfig {
     includeToString = true
     annotationStyle = AnnotationStyle.JACKSON
     customAnnotator = NoopAnnotator.class
+    customRuleFactory = RuleFactory.class
     includeJsr303Annotations = false
     sourceType = SourceType.JSONSCHEMA
     outputEncoding = 'UTF-8'
     useJodaDates = false
     useCommonsLang3 = false
     fileFilter = new AllFileFilter()
+    initializeCollections = true
   }
 
   @Override
@@ -90,6 +95,10 @@ public class JsonSchemaExtension implements GenerationConfig {
     customAnnotator = Class.forName(clazz)
   }
 
+  public void setCustomRuleFactory(String clazz) {
+    customRuleFactory = Class.forName(clazz)
+  }
+
   public void setSourceType(String s) {
     sourceType = SourceType.valueOf(s.toUpperCase())
   }
@@ -108,12 +117,14 @@ public class JsonSchemaExtension implements GenerationConfig {
        |includeToString = ${includeToString}
        |annotationStyle = ${annotationStyle.toString().toLowerCase()}
        |customAnnotator = ${customAnnotator.getName()}
+       |customRuleFactory = ${customRuleFactory.getName()}
        |includeJsr303Annotations = ${includeJsr303Annotations}
        |sourceType = ${sourceType.toString().toLowerCase()}
        |removeOldOutput = ${removeOldOutput}
        |outputEncoding = ${outputEncoding}
        |useJodaDates = ${useJodaDates}
        |useCommonsLang3 = ${useCommonsLang3}
+       |initializeCollections = ${initializeCollections}
      """.stripMargin()
   }
 }

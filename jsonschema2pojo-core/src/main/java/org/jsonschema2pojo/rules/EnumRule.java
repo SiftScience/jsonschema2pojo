@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2013 Nokia
+ * Copyright © 2010-2014 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -176,7 +176,7 @@ public class EnumRule implements Rule<JClassContainer, JType> {
         JClass lookupImplType = _enum.owner().ref(HashMap.class).narrow(_enum.owner().ref(String.class), _enum);
         lookupMap.init(JExpr._new(lookupImplType));
 
-        JForEach forEach = _enum.init().forEach(_enum, "c", _enum.staticInvoke("values"));
+        JForEach forEach = _enum.init().forEach(_enum, "c", JExpr.invoke("values"));
         JInvocation put = forEach.body().invoke(lookupMap, "put");
         put.arg(forEach.var().ref("value"));
         put.arg(forEach.var());
@@ -222,8 +222,8 @@ public class EnumRule implements Rule<JClassContainer, JType> {
     }
 
     private String getEnumName(String nodeName) {
-        String className = ruleFactory.getNameHelper().replaceIllegalCharacters(nodeName);
-        return ruleFactory.getNameHelper().normalizeName(className, true);
+        String className = ruleFactory.getNameHelper().replaceIllegalCharacters(capitalize(nodeName));
+        return ruleFactory.getNameHelper().normalizeName(className);
     }
 
     private String getConstantName(String nodeName) {

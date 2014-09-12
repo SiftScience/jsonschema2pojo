@@ -1,5 +1,5 @@
 /**
- * Copyright © 2010-2013 Nokia
+ * Copyright © 2010-2014 Nokia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.jsonschema2pojo.GenerationConfig;
 import org.jsonschema2pojo.Jsonschema2Pojo;
 import org.jsonschema2pojo.NoopAnnotator;
 import org.jsonschema2pojo.SourceType;
+import org.jsonschema2pojo.rules.RuleFactory;
 
 /**
  * When invoked, this task reads one or more <a
@@ -82,6 +83,8 @@ public class Jsonschema2PojoTask extends Task implements GenerationConfig {
 
     private Class<? extends Annotator> customAnnotator = NoopAnnotator.class;
 
+    private Class<? extends RuleFactory> customRuleFactory = RuleFactory.class;
+
     private boolean includeJsr303Annotations = false;
 
     private SourceType sourceType = SourceType.JSONSCHEMA;
@@ -95,6 +98,8 @@ public class Jsonschema2PojoTask extends Task implements GenerationConfig {
     private boolean useJodaDates = false;
     
     private boolean useCommonsLang3 = false;
+
+    private boolean initializeCollections = true;
 
     /**
      * Execute this task (it's expected that all relevant setters will have been
@@ -327,6 +332,18 @@ public class Jsonschema2PojoTask extends Task implements GenerationConfig {
         }
     }
 
+    public void setCustomRuleFactory(String customRuleFactory) {
+        if (isNotBlank(customRuleFactory)) {
+            try {
+                this.customRuleFactory = (Class<? extends RuleFactory>) Class.forName(customRuleFactory);
+            } catch (ClassNotFoundException e) {
+                throw new IllegalArgumentException(e);
+            }
+        } else {
+            this.customRuleFactory = RuleFactory.class;
+        }
+    }
+
     /**
      * Sets the 'includeJsr303Annotations' property of this class
      * 
@@ -405,7 +422,18 @@ public class Jsonschema2PojoTask extends Task implements GenerationConfig {
     public void setUseCommonsLang3(boolean useCommonsLang3) {
         this.useCommonsLang3 = useCommonsLang3;
     }
-    
+
+
+    /**
+     * Sets the 'initializeCollections' property of this class
+     *
+     * @param initializeCollections
+     *            Whether to initialize collections with empty instance or null.
+     */
+    public void setInitializeCollections(boolean initializeCollections) {
+        this.initializeCollections = initializeCollections;
+    }
+
     @Override
     public boolean isGenerateBuilders() {
         return generateBuilders;
@@ -476,6 +504,11 @@ public class Jsonschema2PojoTask extends Task implements GenerationConfig {
     }
 
     @Override
+    public Class<? extends RuleFactory> getCustomRuleFactory() {
+        return customRuleFactory;
+    }
+
+    @Override
     public boolean isIncludeJsr303Annotations() {
         return includeJsr303Annotations;
     }
@@ -531,6 +564,11 @@ public class Jsonschema2PojoTask extends Task implements GenerationConfig {
     @Override
     public FileFilter getFileFilter() {
         return new AllFileFilter();
+    }
+
+    @Override
+    public boolean isInitializeCollections() {
+        return initializeCollections;
     }
 
 }
