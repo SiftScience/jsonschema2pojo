@@ -125,7 +125,6 @@ public class ObjectRule implements Rule<JPackage, JType> {
             } catch (JClassAlreadyExistsException e) {
                 builderClass = e.getExistingClass();
             }
-            ruleFactory.getAnnotator().objectBuilder(jclass, builderClass);
         }
 
         if (node.has("properties")) {
@@ -153,6 +152,7 @@ public class ObjectRule implements Rule<JPackage, JType> {
 
         if (config.isGenerateBuilderClasses()) {
             addConstructor(jclass, builderClass);
+            ruleFactory.getAnnotator().objectBuilder(jclass, builderClass);
         }
 
         return jclass;
