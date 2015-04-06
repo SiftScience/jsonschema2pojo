@@ -20,6 +20,7 @@ import org.jsonschema2pojo.rules.RuleFactory;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.net.URL;
 import java.util.Iterator;
 
 /**
@@ -71,7 +72,7 @@ public class DefaultGenerationConfig implements GenerationConfig {
      * Unsupported since no default source is possible.
      */
     @Override
-    public Iterator<File> getSource() {
+    public Iterator<URL> getSource() {
         throw new UnsupportedOperationException("No default source available");
     }
 
@@ -189,6 +190,22 @@ public class DefaultGenerationConfig implements GenerationConfig {
         return false;
     }
 
+    /**
+     * @return false
+     */
+    @Override
+    public boolean isUseJodaLocalDates() {
+        return false;
+    }
+
+    /**
+     * @return false
+     */
+    @Override
+    public boolean isUseJodaLocalTimes() {
+        return false;
+    }
+
     @Override
     public boolean isUseCommonsLang3() {
         return false;
@@ -205,5 +222,30 @@ public class DefaultGenerationConfig implements GenerationConfig {
     @Override
     public boolean isInitializeCollections() {
         return true;
+    }
+
+    @Override
+    public String getClassNamePrefix() {
+        return "";
+    }
+
+    @Override
+    public String getClassNameSuffix() {
+        return "";
+    }
+
+    @Override
+    public boolean isIncludeConstructors() {
+        return false;
+    }
+
+    /**
+     * Gets the 'constructorsRequiredPropertiesOnly' configuration option
+     *
+     * @return Whether generated constructors should have parameters for all properties, or only required ones.
+     */
+    @Override
+    public boolean isConstructorsRequiredPropertiesOnly() {
+        return false;
     }
 }

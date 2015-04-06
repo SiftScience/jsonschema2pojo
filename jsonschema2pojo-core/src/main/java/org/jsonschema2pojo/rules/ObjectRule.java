@@ -16,6 +16,7 @@
 
 package org.jsonschema2pojo.rules;
 
+import static org.apache.commons.lang3.StringUtils.*;
 import static org.jsonschema2pojo.rules.PrimitiveTypes.*;
 
 import java.io.Serializable;
@@ -35,11 +36,22 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.sun.codemodel.JExpression;
 import org.jsonschema2pojo.GenerationConfig;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Generated;
+
+import org.jsonschema2pojo.AnnotationStyle;
 import org.jsonschema2pojo.Schema;
 import org.jsonschema2pojo.SchemaMapper;
 import org.jsonschema2pojo.exception.ClassAlreadyExistsException;
-import org.jsonschema2pojo.AnnotationStyle;
+import org.jsonschema2pojo.util.TypeUtil;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JAnnotationUse;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
@@ -56,11 +68,10 @@ import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JTypeVar;
 import com.sun.codemodel.JVar;
-import com.sun.codemodel.ClassType;
 
 /**
  * Applies the generation steps required for schemas of type "object".
- * 
+ *
  * @see <a
  *      href="http://tools.ietf.org/html/draft-zyp-json-schema-03#section-5.1">http://tools.ietf.org/html/draft-zyp-json-schema-03#section-5.1</a>
  */
@@ -109,7 +120,7 @@ public class ObjectRule implements Rule<JPackage, JType> {
         if (node.has("deserializationClassProperty")) {
             addJsonTypeInfoAnnotation(jclass, node);
         }
-        
+
         if (node.has("title")) {
             ruleFactory.getTitleRule().apply(nodeName, node.get("title"), jclass, schema);
         }
@@ -139,13 +150,21 @@ public class ObjectRule implements Rule<JPackage, JType> {
             addToString(jclass);
         }
 
-        if (config.isIncludeHashcodeAndEquals()) {
+        if (node.has("javaInterfaces")) {
+            addInterfaces(jclass, node.get("javaInterfaces"));
+        }
+
+        if (node.has("required")) {
+            ruleFactory.getRequiredArrayRule().apply(nodeName, node.get("required"), jclass, schema);
+        }
+
+        if (ruleFactory.getGenerationConfig().isIncludeHashcodeAndEquals()) {
             addHashCode(jclass);
             addEquals(jclass);
         }
 
-        if (node.has("javaInterfaces")) {
-            addInterfaces(jclass, node.get("javaInterfaces"));
+        if (ruleFactory.getGenerationConfig().isIncludeConstructors()) {
+            addConstructors(jclass, getConstructorProperties(node, ruleFactory.getGenerationConfig().isConstructorsRequiredPropertiesOnly()));
         }
 
         ruleFactory.getAdditionalPropertiesRule().apply(nodeName, node.get("additionalProperties"), jclass, schema);
@@ -256,9 +275,39 @@ public class ObjectRule implements Rule<JPackage, JType> {
         body._return(builderVar);
     }
 
+    /*
+     * Retrieve the list of properties to go in the constructor from node. This is all properties listed in node["properties"]
+     * if ! onlyRequired, and only required properties if onlyRequired.
+     * @param node
+     * @return
+     */
+    private List<String> getConstructorProperties(JsonNode node, boolean onlyRequired) {
+
+        if (! node.has("properties")) {
+            return new ArrayList<String>();
+        }
+
+        List<String> rtn = new ArrayList<String>();
+
+        NameHelper nameHelper = ruleFactory.getNameHelper();
+        for (Iterator<Map.Entry<String, JsonNode>> properties = node.get("properties").fields(); properties.hasNext(); ) {
+            Map.Entry<String, JsonNode> property = properties.next();
+
+            JsonNode propertyObj = property.getValue();
+            if (onlyRequired) {
+                if (propertyObj.has("required") && propertyObj.get("required").asBoolean()) {
+                    rtn.add(nameHelper.getPropertyName(property.getKey()));
+                }
+            } else {
+                rtn.add((nameHelper.getPropertyName(property.getKey())));
+            }
+        }
+        return rtn;
+    }
+
     /**
      * Creates a new Java class that will be generated.
-     * 
+     *
      * @param nodeName
      *            the node name which may be used to dictate the new class name
      * @param node
@@ -284,7 +333,6 @@ public class ObjectRule implements Rule<JPackage, JType> {
             boolean usePolymorphicDeserialization = usesPolymorphicDeserialization(node);
             if (node.has("javaType")) {
                 String fqn = substringBefore(node.get("javaType").asText(), "<");
-                String[] genericArguments = split(substringBetween(node.get("javaType").asText(), "<", ">"), ",");
 
                 if (isPrimitive(fqn, _package.owner())) {
                     throw new ClassAlreadyExistsException(primitiveType(fqn, _package.owner()));
@@ -299,13 +347,15 @@ public class ObjectRule implements Rule<JPackage, JType> {
                     }
                 }
 
+                int index = fqn.lastIndexOf(".") + 1;
+                if(index >= 0 && index<fqn.length()) {
+                    fqn = fqn.substring(0, index) + ruleFactory.getGenerationConfig().getClassNamePrefix() + fqn.substring(index)  +ruleFactory.getGenerationConfig().getClassNameSuffix();
+                }
+                
                 try {
-                    JClass existingClass = _package.owner().ref(Thread.currentThread().getContextClassLoader().loadClass(fqn));
-                    
-                    if (isNotEmpty(genericArguments)) {
-                        existingClass = addGenericArguments(_package, existingClass, genericArguments);
-                    }
-                            
+                    _package.owner().ref(Thread.currentThread().getContextClassLoader().loadClass(fqn));
+                    JClass existingClass = TypeUtil.resolveType(_package, fqn + (node.get("javaType").asText().contains("<") ? "<" + substringAfter(node.get("javaType").asText(), "<") : ""));
+
                     throw new ClassAlreadyExistsException(existingClass);
                 } catch (ClassNotFoundException e) {
                     if (usePolymorphicDeserialization) {
@@ -314,6 +364,7 @@ public class ObjectRule implements Rule<JPackage, JType> {
                         newType = _package.owner()._class(fqn);
                     }
 
+                    String[] genericArguments = split(substringBetween(node.get("javaType").asText(), "<", ">"), ",");
                     if (isNotEmpty(genericArguments)) {
                         for (String parameter : genericArguments) {
                             newType.generify(parameter.trim());
@@ -322,7 +373,7 @@ public class ObjectRule implements Rule<JPackage, JType> {
                 }
             } else {
                 if (usePolymorphicDeserialization) {
-                    newType = _package._class(JMod.PUBLIC, getClassName(nodeName, _package), 
+                    newType = _package._class(JMod.PUBLIC, getClassName(nodeName, _package),
                             ClassType.CLASS);
                 } else {
                     newType = _package._class(getClassName(nodeName, _package));
@@ -336,15 +387,6 @@ public class ObjectRule implements Rule<JPackage, JType> {
 
         return newType;
 
-    }
-
-    private JClass addGenericArguments(JPackage _package, JClass existingClass, String[] genericArgumentClassNames) {
-        JClass[] genericArgumentClasses = new JClass[genericArgumentClassNames.length];
-        for (int i=0; i<genericArgumentClasses.length; i++) {
-            genericArgumentClasses[i] = _package.owner().ref(genericArgumentClassNames[i]);
-        }
-        
-        return existingClass.narrow(genericArgumentClasses);
     }
 
     private boolean isFinal(JType superType) {
@@ -378,14 +420,14 @@ public class ObjectRule implements Rule<JPackage, JType> {
             jsonTypeInfo.param("property", annotationName);
         }
     }
-    
+
     private void addToString(JDefinedClass jclass) {
         JMethod toString = jclass.method(JMod.PUBLIC, String.class, "toString");
 
         Class<?> toStringBuilder = ruleFactory.getGenerationConfig().isUseCommonsLang3() ?
-                org.apache.commons.lang3.builder.ToStringBuilder.class : 
+                org.apache.commons.lang3.builder.ToStringBuilder.class :
                     org.apache.commons.lang.builder.ToStringBuilder.class;
-        
+
         JBlock body = toString.body();
         JInvocation reflectionToString = jclass.owner().ref(toStringBuilder).staticInvoke("reflectionToString");
         reflectionToString.arg(JExpr._this());
@@ -395,33 +437,93 @@ public class ObjectRule implements Rule<JPackage, JType> {
     }
 
     private void addHashCode(JDefinedClass jclass) {
+        Map<String, JFieldVar> fields = jclass.fields();
+        if (fields.isEmpty()) {
+            return;
+        }
+
         JMethod hashCode = jclass.method(JMod.PUBLIC, int.class, "hashCode");
 
-        Class<?> hashcodeBuiler = ruleFactory.getGenerationConfig().isUseCommonsLang3() ?
-                org.apache.commons.lang3.builder.HashCodeBuilder.class : 
+        Class<?> hashCodeBuilder = ruleFactory.getGenerationConfig().isUseCommonsLang3() ?
+                org.apache.commons.lang3.builder.HashCodeBuilder.class :
                     org.apache.commons.lang.builder.HashCodeBuilder.class;
-        
+
         JBlock body = hashCode.body();
-        JInvocation reflectionHashCode = jclass.owner().ref(hashcodeBuiler).staticInvoke("reflectionHashCode");
-        reflectionHashCode.arg(JExpr._this());
-        body._return(reflectionHashCode);
+        JClass hashCodeBuilderClass = jclass.owner().ref(hashCodeBuilder);
+        JInvocation hashCodeBuilderInvocation = JExpr._new(hashCodeBuilderClass);
+
+        for (JFieldVar fieldVar : fields.values()) {
+            hashCodeBuilderInvocation = hashCodeBuilderInvocation.invoke("append").arg(fieldVar);
+        }
+
+        body._return(hashCodeBuilderInvocation.invoke("toHashCode"));
 
         hashCode.annotate(Override.class);
     }
 
+    private void addConstructors(JDefinedClass jclass, List<String> properties) {
+
+        // no properties to put in the constructor => default constructor is good enough.
+        if (properties.isEmpty()) {
+            return;
+        }
+
+        // add a no-args constructor for serialization purposes
+        JMethod noargsConstructor = jclass.constructor(JMod.PUBLIC);
+        noargsConstructor.javadoc().add("No args constructor for use in serialization");
+
+        // add the public constructor with property parameters
+        JMethod fieldsConstructor = jclass.constructor(JMod.PUBLIC);
+        JBlock constructorBody = fieldsConstructor.body();
+
+        Map<String, JFieldVar> fields = jclass.fields();
+
+        for (String property : properties) {
+            JFieldVar field = fields.get(property);
+
+            if (field == null) {
+                throw new IllegalStateException("Property " + property + " hasn't been added to JDefinedClass before calling addConstructors");
+            }
+
+            fieldsConstructor.javadoc().addParam(property);
+            JVar param = fieldsConstructor.param(field.type(), field.name());
+            constructorBody.assign(JExpr._this().ref(field), param);
+        }
+    }
+
     private void addEquals(JDefinedClass jclass) {
+        Map<String, JFieldVar> fields = jclass.fields();
+        if (fields.isEmpty()) {
+            return;
+        }
+
         JMethod equals = jclass.method(JMod.PUBLIC, boolean.class, "equals");
         JVar otherObject = equals.param(Object.class, "other");
 
         Class<?> equalsBuilder = ruleFactory.getGenerationConfig().isUseCommonsLang3() ?
-                org.apache.commons.lang3.builder.EqualsBuilder.class : 
+                org.apache.commons.lang3.builder.EqualsBuilder.class :
                     org.apache.commons.lang.builder.EqualsBuilder.class;
 
         JBlock body = equals.body();
+
+        body._if(otherObject.eq(JExpr._this()))._then()._return(JExpr.TRUE);
+        body._if(otherObject._instanceof(jclass).eq(JExpr.FALSE))._then()._return(JExpr.FALSE);
+
+        JVar rhsVar = body.decl(jclass, "rhs").init(JExpr.cast(jclass, otherObject));
+        JClass equalsBuilderClass = jclass.owner().ref(equalsBuilder);
+        JInvocation equalsBuilderInvocation = JExpr._new(equalsBuilderClass);
+
+        for (JFieldVar fieldVar : fields.values()) {
+            equalsBuilderInvocation = equalsBuilderInvocation.invoke("append")
+                    .arg(fieldVar)
+                    .arg(rhsVar.ref(fieldVar.name()));
+        }
+
         JInvocation reflectionEquals = jclass.owner().ref(equalsBuilder).staticInvoke("reflectionEquals");
         reflectionEquals.arg(JExpr._this());
         reflectionEquals.arg(otherObject);
-        body._return(reflectionEquals);
+
+        body._return(equalsBuilderInvocation.invoke("isEquals"));
 
         equals.annotate(Override.class);
     }

@@ -1,7 +1,35 @@
 # Changelog
 
+## 0.4.10
+* Initial class name is truncated after first . char, instead of last . char ([#313](https://github.com/joelittlejohn/jsonschema2pojo/issues/313))
+* Add support for android library plugin ([#305](https://github.com/joelittlejohn/jsonschema2pojo/issues/305))
+* Support "javaType" for things that are not "type": "object" ([#223](https://github.com/joelittlejohn/jsonschema2pojo/issues/223))
+
+## 0.4.9
+* Array types are ignored inside generics in javaType ([#299](https://github.com/joelittlejohn/jsonschema2pojo/issues/299))
+* Add config options to generate Joda LocalDate and LocalTime ([#298](https://github.com/joelittlejohn/jsonschema2pojo/issues/298))
+* Allow URLs as source locations ([#293](https://github.com/joelittlejohn/jsonschema2pojo/issues/293))
+
+## 0.4.8
+* Android support in gradle plugin ([#292](https://github.com/joelittlejohn/jsonschema2pojo/pull/292))
+* Add support for Jackson's JsonView ([#291](https://github.com/joelittlejohn/jsonschema2pojo/pull/291))
+* Added support for javaType on integer and number properties. ([#287](https://github.com/joelittlejohn/jsonschema2pojo/pull/287))
+* Option to create constructors (with all fields, or with required fields) ([#231](https://github.com/joelittlejohn/jsonschema2pojo/issues/231))
+* Support nested generic type arguments in javaType ([#196](https://github.com/joelittlejohn/jsonschema2pojo/issues/196))
+
+## 0.4.7
+* Adding UUID support to FormatRule ([#270](https://github.com/joelittlejohn/jsonschema2pojo/pull/270))
+* Add GSON annotation '@SerializedName' to Enums ([#267](https://github.com/joelittlejohn/jsonschema2pojo/issues/267))
+* Add ability to set prefixes/suffixes for generated classes ([#258](https://github.com/joelittlejohn/jsonschema2pojo/pull/258))
+
+## 0.4.6
+* ClassNotFoundException when attempting to use a custom annotator from a project dependency ([#256](https://github.com/joelittlejohn/jsonschema2pojo/issues/256))
+* Inflector incorrectly singularizes Address to Addres  ([#244](https://github.com/joelittlejohn/jsonschema2pojo/issues/244))
+* propertyWordDelimiters config is ignored ([#243](https://github.com/joelittlejohn/jsonschema2pojo/issues/243))
+* Improve the way Equals and Hashcode are generated ([#241](https://github.com/joelittlejohn/jsonschema2pojo/pull/241))
+
 ## 0.4.5
-* Allow sets to have an \[ \] \(empty\) default value ([#232](https://github.com/joelittlejohn/jsonschema2pojo/pull/232))
+* Allow sets to have an empty default value ([#232](https://github.com/joelittlejohn/jsonschema2pojo/pull/232))
 * Use LinkedHashSet when deserializing Set to preserve order ([#227](https://github.com/joelittlejohn/jsonschema2pojo/pull/227))
 * Allow SchemaMapper to generate from String and not only URL ([#221](https://github.com/joelittlejohn/jsonschema2pojo/pull/221))
 * Generate @Param and @Returns javadoc ([#219](https://github.com/joelittlejohn/jsonschema2pojo/pull/219))

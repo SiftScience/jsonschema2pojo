@@ -165,6 +165,17 @@ public class TypeIT {
     }
 
     @Test
+    public void javaTypeCanBeUsedForAnyShemaType() throws NoSuchMethodException {
+
+        assertThat(classWithManyTypes.getMethod("getIntegerWithJavaType").getReturnType().getName(), is("java.math.BigDecimal"));
+        assertThat(classWithManyTypes.getMethod("getNumberWithJavaType").getReturnType().getName(), is("java.util.UUID"));
+        assertThat(classWithManyTypes.getMethod("getStringWithJavaType").getReturnType().getName(), is("java.lang.Boolean"));
+        assertThat(classWithManyTypes.getMethod("getBooleanWithJavaType").getReturnType().getName(), is("long"));
+        assertThat(classWithManyTypes.getMethod("getDateWithJavaType").getReturnType().getName(), is("int"));
+
+    }
+
+    @Test
     public void useLongIntegersParameterCausesIntegersToBecomeLongs() throws ClassNotFoundException, NoSuchMethodException, SecurityException {
         File generatedTypesDirectory = generate("/schema/type/integerAsLong.json", "com.example", config("useLongIntegers", true));
         Class<?> classWithLongProperty = compile(generatedTypesDirectory).loadClass("com.example.IntegerAsLong");
@@ -245,19 +256,6 @@ public class TypeIT {
         assertThat(getterMethod.getReturnType().getInterfaces().length, is(2));
         assertThat((Class[]) getterMethod.getReturnType().getInterfaces(), hasItemInArray((Class) Cloneable.class));
         assertThat((Class[]) getterMethod.getReturnType().getInterfaces(), hasItemInArray((Class) Serializable.class));
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    @Test
-    public void genericTypeCanBeIncludedInJavaType() throws ClassNotFoundException, NoSuchMethodException, SecurityException {
-        Class<?> classWithNameConflict = generateAndCompile("/schema/type/genericJavaType.json", "com.example").loadClass("com.example.GenericJavaType");
-
-        Method getterMethod = classWithNameConflict.getMethod("getA");
-
-        assertThat((Class<Map>) getterMethod.getReturnType(), is(equalTo(Map.class)));
-        assertThat(getterMethod.getGenericReturnType(), is(instanceOf(ParameterizedType.class)));
-        assertThat(((ParameterizedType)getterMethod.getGenericReturnType()).getActualTypeArguments()[0], is(equalTo((Type)String.class)));
-        assertThat(((ParameterizedType)getterMethod.getGenericReturnType()).getActualTypeArguments()[1], is(equalTo((Type)Integer.class)));
     }
 
 }

@@ -20,6 +20,7 @@ import static org.apache.commons.lang3.StringUtils.*;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 
@@ -29,12 +30,11 @@ import org.jsonschema2pojo.Annotator;
 import org.jsonschema2pojo.GenerationConfig;
 import org.jsonschema2pojo.NoopAnnotator;
 import org.jsonschema2pojo.SourceType;
+import org.jsonschema2pojo.rules.RuleFactory;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
-import com.beust.jcommander.converters.FileConverter;
-import org.jsonschema2pojo.rules.RuleFactory;
 
 /**
  * Describes and parses the command line arguments supported by the
@@ -51,8 +51,8 @@ public class Arguments implements GenerationConfig {
     @Parameter(names = { "-t", "--target" }, description = "The target directory into which generated types will be written", required = true)
     private File targetDirectory;
 
-    @Parameter(names = { "-s", "--source" }, description = "The source file(s) or directory(ies) from which JSON Schema will be read", required = true, converter = FileConverter.class)
-    private List<File> sourcePaths;
+    @Parameter(names = { "-s", "--source" }, description = "The source file(s) or directory(ies) from which JSON Schema will be read", required = true, converter = UrlConverter.class)
+    private List<URL> sourcePaths;
 
     @Parameter(names = { "-b", "--generate-builders" }, description = "Generate builder-style methods as well as setters")
     private boolean generateBuilderMethods = false;
@@ -65,6 +65,12 @@ public class Arguments implements GenerationConfig {
 
     @Parameter(names = { "-u", "--use-public-fields" }, description = "Use public fields for properties instead of getters and setters")
     private boolean usePublicFields = false;
+
+    @Parameter(names = {"-c", "--generate-constructors"}, description = "Generate constructors")
+    private boolean generateConstructors = false;
+
+    @Parameter(names = {"-r", "--constructors-required-only"}, description = "Generate constructors with only required fields")
+    private boolean constructorsRequiredPropertiesOnly = false;
 
     @Parameter(names = { "-P", "--use-primitives" }, description = "Use primitives instead of wrapper types for bean properties")
     private boolean usePrimitives = false;
@@ -97,7 +103,7 @@ public class Arguments implements GenerationConfig {
             converter = ClassConverter.class)
     private Class<? extends RuleFactory> customRuleFactory = RuleFactory.class;
 
-    @Parameter(names = { "-303", "--jsr303-annotations" }, description = "Add JSR-303 annotations to generated Java types.")
+    @Parameter(names = { "-303", "--jsr303-annotations" }, description = "Add JSR-303/349 annotations to generated Java types.")
     private boolean includeJsr303Annotations = false;
 
     @Parameter(names = { "-T", "--source-type" })
@@ -109,14 +115,29 @@ public class Arguments implements GenerationConfig {
     @Parameter(names = { "-e", "--output-encoding" }, description = "The character encoding that should be used when writing the generated Java source files.")
     private String outputEncoding = "UTF-8";
 
-    @Parameter(names = { "-j", "--joda-dates" }, description = "Whether to use org.joda.time.DateTime instead of java.util.Date when adding date type fields to generated Java types.")
+    @Parameter(names = { "-j", "--joda-dates" }, description = "Whether to use org.joda.time.DateTime instead of java" +
+            ".util.Date when adding date-time type fields to generated Java types.")
     private boolean useJodaDates = false;
+
+    @Parameter(names = { "-jd", "--joda-local-dates" }, description = "Whether to use org.joda.time.LocalDate instead" +
+            "of String when adding date type fields to generated Java types.")
+    private boolean useJodaLocalDates = false;
+
+    @Parameter(names = { "-jt", "--joda-local-times" }, description = "Whether to use org.joda.time.LocalTime instead" +
+            "of String when adding time type fields to generated Java types.")
+    private boolean useJodaLocalTimes = false;
 
     @Parameter(names = { "-c3", "--commons-lang3" }, description = "Whether to use commons-lang 3.x imports instead of commons-lang 2.x imports when adding equals, hashCode and toString methods.")
     private boolean useCommonsLang3 = false;
 
     @Parameter(names = { "-N", "--null-collections" }, description = "Initialize Set and List fields to null instead of an empty collection.")
     private boolean nullCollections = false;
+    
+    @Parameter(names = { "-y", "--class-prefix" }, description = "Initialize Set and List fields to null instead of an empty collection.")
+    private String classNamePrefix = "";
+    
+    @Parameter(names = { "-x", "--class-suffix" }, description = "Initialize Set and List fields to null instead of an empty collection.")
+    private String classNameSuffix = "";
 
     private static final int EXIT_OKAY = 0;
     private static final int EXIT_ERROR = 1;
@@ -154,7 +175,7 @@ public class Arguments implements GenerationConfig {
     }
 
     @Override
-    public Iterator<File> getSource() {
+    public Iterator<URL> getSource() {
         return sourcePaths.iterator();
     }
 
@@ -229,7 +250,9 @@ public class Arguments implements GenerationConfig {
     }
 
     @Override
-    public Class<? extends RuleFactory> getCustomRuleFactory() { return customRuleFactory; }
+    public Class<? extends RuleFactory> getCustomRuleFactory() {
+        return customRuleFactory;
+    }
 
     @Override
     public boolean isIncludeJsr303Annotations() {
@@ -257,10 +280,20 @@ public class Arguments implements GenerationConfig {
     }
 
     @Override
+    public boolean isUseJodaLocalDates() {
+        return useJodaLocalDates;
+    }
+
+    @Override
+    public boolean isUseJodaLocalTimes() {
+        return useJodaLocalTimes;
+    }
+
+    @Override
     public boolean isUseCommonsLang3() {
         return useCommonsLang3;
     }
-    
+
     protected void exit(int status) {
         System.exit(status);
     }
@@ -273,6 +306,36 @@ public class Arguments implements GenerationConfig {
     @Override
     public boolean isInitializeCollections() {
         return !nullCollections;
+    }
+
+    @Override
+    public String getClassNamePrefix() {
+        return classNamePrefix;
+    }
+
+    @Override
+    public String getClassNameSuffix() {
+        return classNameSuffix;
+    }
+
+    /**
+     * Gets the 'includeConstructors' configuration option
+     *
+     * @return Whether to generate constructors or not.
+     */
+    @Override
+    public boolean isIncludeConstructors() {
+        return generateConstructors;
+    }
+
+    /**
+     * Gets the 'constructorsRequiredPropertiesOnly' configuration option
+     *
+     * @return Whether generated constructors should have parameters for all properties, or only required ones.
+     */
+    @Override
+    public boolean isConstructorsRequiredPropertiesOnly() {
+        return constructorsRequiredPropertiesOnly;
     }
 
 }

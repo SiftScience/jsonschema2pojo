@@ -74,7 +74,7 @@ public class PropertyRule implements Rule<JDefinedClass, JDefinedClass> {
     public JDefinedClass apply(String nodeName, JsonNode node, JDefinedClass jclass, Schema schema) {
         GenerationConfig config = ruleFactory.getGenerationConfig();
 
-        String propertyName = getPropertyName(nodeName);
+        String propertyName = ruleFactory.getNameHelper().getPropertyName(nodeName);
 
         JType propertyType = ruleFactory.getSchemaRule().apply(nodeName, node, jclass, schema);
 
@@ -192,7 +192,7 @@ public class PropertyRule implements Rule<JDefinedClass, JDefinedClass> {
         JMethod getter = c.method(JMod.PUBLIC, field.type(), getGetterName(jsonPropertyName, field.type()));
 
         // add @returns
-        getter.javadoc().addReturn().append("The " + getPropertyName(jsonPropertyName));
+        getter.javadoc().addReturn().append("The " + ruleFactory.getNameHelper().getPropertyName(jsonPropertyName));
 
         JBlock body = getter.body();
         body._return(field);
@@ -206,7 +206,7 @@ public class PropertyRule implements Rule<JDefinedClass, JDefinedClass> {
         JMethod setter = c.method(JMod.PUBLIC, void.class, getSetterName(jsonPropertyName));
 
         // add @param
-        setter.javadoc().addParam(getPropertyName(jsonPropertyName)).append("The " + jsonPropertyName);
+        setter.javadoc().addParam(ruleFactory.getNameHelper().getPropertyName(jsonPropertyName)).append("The " + jsonPropertyName);
 
         JVar param = setter.param(field.type(), field.name());
         JBlock body = setter.body();
@@ -230,47 +230,17 @@ public class PropertyRule implements Rule<JDefinedClass, JDefinedClass> {
         return builder;
     }
 
-    private String getPropertyName(String nodeName) {
-        nodeName = ruleFactory.getNameHelper().replaceIllegalCharacters(nodeName);
-        nodeName = ruleFactory.getNameHelper().normalizeName(nodeName);
-
-        if (isKeyword(nodeName)) {
-            nodeName = "_" + nodeName;
-        }
-
-        if (isKeyword(nodeName)) {
-            nodeName += "_";
-        }
-
-        return nodeName;
-    }
-
-    private String getSetterName(String propertyName) {
-        propertyName = ruleFactory.getNameHelper().replaceIllegalCharacters(propertyName);
-        String setterName = "set" + capitalize(ruleFactory.getNameHelper().capitalizeTrailingWords(propertyName));
-
-        if (setterName.equals("setClass")) {
-            setterName = "setClass_";
-        }
-
-        return setterName;
-    }
-
     private String getBuilderName(String propertyName) {
         propertyName = ruleFactory.getNameHelper().replaceIllegalCharacters(propertyName);
         return "with" + capitalize(ruleFactory.getNameHelper().capitalizeTrailingWords(propertyName));
     }
 
+    private String getSetterName(String propertyName) {
+        return ruleFactory.getNameHelper().getSetterName(propertyName);
+    }
+
     private String getGetterName(String propertyName, JType type) {
-        String prefix = type.equals(type.owner()._ref(boolean.class)) ? "is" : "get";
-        propertyName = ruleFactory.getNameHelper().replaceIllegalCharacters(propertyName);
-        String getterName = prefix + capitalize(ruleFactory.getNameHelper().capitalizeTrailingWords(propertyName));
-
-        if (getterName.equals("getClass")) {
-            getterName = "getClass_";
-        }
-
-        return getterName;
+        return ruleFactory.getNameHelper().getGetterName(propertyName, type);
     }
 
 }

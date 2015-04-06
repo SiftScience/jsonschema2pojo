@@ -18,9 +18,12 @@ package org.jsonschema2pojo.rules;
 
 import java.net.URI;
 import java.util.Date;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
 import org.jsonschema2pojo.GenerationConfig;
 import org.jsonschema2pojo.Schema;
 
@@ -46,9 +49,9 @@ public class FormatRule implements Rule<JType, JType> {
      * <p>
      * This rule maps format values to Java types:
      * <ul>
-     * <li>"format":"date-time" =&gt; {@link java.util.Date}
-     * <li>"format":"date" =&gt; {@link String}
-     * <li>"format":"time" =&gt; {@link String}
+     * <li>"format":"date-time" =&gt; {@link java.util.Date} or {@link org.joda.time.DateTime} (if config useJodaDates is set)
+     * <li>"format":"date" =&gt; {@link String} or {@link org.joda.time.LocalDate} (if config useJodaLocalDates is set)
+     * <li>"format":"time" =&gt; {@link String} or {@link org.joda.time.LocalTime} (if config useJodaLocalTimes is set)
      * <li>"format":"utc-millisec" =&gt; <code>long</code>
      * <li>"format":"regex" =&gt; {@link java.util.regex.Pattern}
      * <li>"format":"color" =&gt; {@link String}
@@ -59,6 +62,7 @@ public class FormatRule implements Rule<JType, JType> {
      * <li>"format":"ip-address" =&gt; {@link String}
      * <li>"format":"ipv6" =&gt; {@link String}
      * <li>"format":"host-name" =&gt; {@link String}
+     * <li>"format":"uuid" =&gt; {@link java.util.UUID}
      * <li>other (unrecognised format) =&gt; baseType
      * </ul>
      * 
@@ -76,13 +80,13 @@ public class FormatRule implements Rule<JType, JType> {
     public JType apply(String nodeName, JsonNode node, JType baseType, Schema schema) {
 
         if (node.asText().equals("date-time")) {
-            return baseType.owner().ref(getDateType());
+            return baseType.owner().ref(getDateTimeType());
 
         } else if (node.asText().equals("date")) {
-            return baseType.owner().ref(String.class);
+            return baseType.owner().ref(getDateOnlyType());
 
         } else if (node.asText().equals("time")) {
-            return baseType.owner().ref(String.class);
+            return baseType.owner().ref(getTimeOnlyType());
 
         } else if (node.asText().equals("utc-millisec")) {
             return unboxIfNecessary(baseType.owner().ref(Long.class), ruleFactory.getGenerationConfig());
@@ -113,15 +117,26 @@ public class FormatRule implements Rule<JType, JType> {
 
         } else if (node.asText().equals("host-name")) {
             return baseType.owner().ref(String.class);
-
-        } else {
+        }
+          else if (node.asText().equals("uuid")) {
+                return baseType.owner().ref(UUID.class);
+        }
+         else {
             return baseType;
         }
 
     }
 
-    private Class<?> getDateType() {
+    private Class<?> getDateTimeType() {
         return ruleFactory.getGenerationConfig().isUseJodaDates() ? DateTime.class : Date.class;
+    }
+
+    private Class<?> getDateOnlyType() {
+        return ruleFactory.getGenerationConfig().isUseJodaLocalDates() ? LocalDate.class : String.class;
+    }
+
+    private Class<?> getTimeOnlyType() {
+        return ruleFactory.getGenerationConfig().isUseJodaLocalTimes() ? LocalTime.class : String.class;
     }
 
     private JType unboxIfNecessary(JType type, GenerationConfig config) {

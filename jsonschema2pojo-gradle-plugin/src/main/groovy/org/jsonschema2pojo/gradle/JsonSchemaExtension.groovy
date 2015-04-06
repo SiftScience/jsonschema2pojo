@@ -15,7 +15,6 @@
  */
 package org.jsonschema2pojo.gradle
 
-import java.util.Map
 import org.jsonschema2pojo.AnnotationStyle
 import org.jsonschema2pojo.Annotator
 import org.jsonschema2pojo.AllFileFilter
@@ -42,6 +41,8 @@ public class JsonSchemaExtension implements GenerationConfig {
   char[] propertyWordDelimiters
   boolean useLongIntegers
   boolean useDoubleNumbers
+  boolean includeConstructors
+  boolean constructorsRequiredPropertiesOnly
   boolean includeHashcodeAndEquals
   boolean includeToString
   AnnotationStyle annotationStyle
@@ -52,9 +53,13 @@ public class JsonSchemaExtension implements GenerationConfig {
   boolean removeOldOutput
   String outputEncoding
   boolean useJodaDates
+  boolean useJodaLocalDates
+  boolean useJodaLocalTimes
   boolean useCommonsLang3
   FileFilter fileFilter
   boolean initializeCollections
+  String classNamePrefix
+  String classNameSuffix
 
   public JsonSchemaExtension() {
     // See DefaultGenerationConfig
@@ -69,6 +74,8 @@ public class JsonSchemaExtension implements GenerationConfig {
     useLongIntegers = false
     useDoubleNumbers = true
     includeHashcodeAndEquals = true
+    includeConstructors = false
+    constructorsRequiredPropertiesOnly = false
     includeToString = true
     annotationStyle = AnnotationStyle.JACKSON
     customAnnotator = NoopAnnotator.class
@@ -77,14 +84,22 @@ public class JsonSchemaExtension implements GenerationConfig {
     sourceType = SourceType.JSONSCHEMA
     outputEncoding = 'UTF-8'
     useJodaDates = false
+    useJodaLocalDates = false
+    useJodaLocalTimes = false
     useCommonsLang3 = false
     fileFilter = new AllFileFilter()
     initializeCollections = true
+    classNamePrefix = ''
+    classNameSuffix = ''
   }
 
   @Override
-  public Iterator<File> getSource() {
-    sourceFiles.iterator()
+  public Iterator<URL> getSource() {
+    def urlList = []
+    for (source in sourceFiles) {
+      urlList.add(source.toURI().toURL())
+    }
+    urlList.iterator()
   }
 
   public void setSource(Iterable<File> files) {
@@ -108,8 +123,44 @@ public class JsonSchemaExtension implements GenerationConfig {
   public void setSourceType(String s) {
     sourceType = SourceType.valueOf(s.toUpperCase())
   }
+  
+  public void setClassNamePrefix(String s) {
+    classNamePrefix = s
+  }
+  
+  public String getClassNamePrefix() {
+    classNamePrefix
+  }
+  
+  public void setClassNameSuffix(String s) {
+    classNameSuffix = s
+  }
+  
+  public String getClassNameSuffix() {
+    classNameSuffix
+  }
 
-  @Override
+    /**
+     * Gets the 'includeConstructors' configuration option
+     *
+     * @return Whether to generate constructors or not.
+     */
+    @Override
+    boolean isIncludeConstructors() {
+        includeConstructors;
+    }
+
+    /**
+     * Gets the 'constructorsRequiredPropertiesOnly' configuration option
+     *
+     * @return Whether generated constructors should have parameters for all properties, or only required ones.
+     */
+    @Override
+    boolean isConstructorsRequiredPropertiesOnly() {
+        constructorsRequiredPropertiesOnly
+    }
+
+    @Override
   public String toString() {
     """|generateBuilders = ${generateBuilders}
        |generateBuilderClasses = ${generateBuilderClasses}
@@ -123,6 +174,7 @@ public class JsonSchemaExtension implements GenerationConfig {
        |useLongIntegers = ${useLongIntegers}
        |useDoubleNumbers = ${useDoubleNumbers}
        |includeHashcodeAndEquals = ${includeHashcodeAndEquals}
+       |includeConstructors = ${includeConstructors}
        |includeToString = ${includeToString}
        |annotationStyle = ${annotationStyle.toString().toLowerCase()}
        |customAnnotator = ${customAnnotator.getName()}
@@ -132,8 +184,12 @@ public class JsonSchemaExtension implements GenerationConfig {
        |removeOldOutput = ${removeOldOutput}
        |outputEncoding = ${outputEncoding}
        |useJodaDates = ${useJodaDates}
+       |useJodaLocalDates = ${useJodaLocalDates}
+       |useJodaLocalTimes = ${useJodaLocalTimes}
        |useCommonsLang3 = ${useCommonsLang3}
        |initializeCollections = ${initializeCollections}
+       |classNamePrefix = ${classNamePrefix}
+       |classNameSuffix = ${classNameSuffix}
      """.stripMargin()
   }
 }

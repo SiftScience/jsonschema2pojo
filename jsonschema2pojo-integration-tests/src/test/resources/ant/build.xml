@@ -38,13 +38,15 @@
                          includeJsr303Annotations="true"
                          classpathRef="custom.libs"
                          useJodaDates="true"
+                         useJodaLocalDates="true"
+                         useJodaLocalTimes="true"
                          useCommonsLang3="true"
                          initializeCollections="false">
             <classpath>
                 <fileset dir="${project.build.directory}/custom-libs">
                     <include name="**/*.jar" />
                 </fileset>
-        	</classpath>
+            </classpath>
         </jsonschema2pojo>
 
         <!-- use json input -->

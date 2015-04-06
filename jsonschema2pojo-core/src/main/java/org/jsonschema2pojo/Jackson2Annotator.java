@@ -30,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.sun.codemodel.JAnnotationArrayMember;
@@ -40,6 +41,7 @@ import com.sun.codemodel.JClass;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JEnumConstant;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
@@ -55,7 +57,7 @@ import static org.jsonschema2pojo.rules.ObjectRule.immutableCopy;
  * @see <a
  *      href="https://github.com/FasterXML/jackson-annotations">https://github.com/FasterXML/jackson-annotations</a>
  */
-public class Jackson2Annotator implements Annotator {
+public class Jackson2Annotator extends AbstractAnnotator {
 
     @Override
     public void propertyOrder(JDefinedClass clazz, JsonNode propertiesNode) {
@@ -150,6 +152,11 @@ public class Jackson2Annotator implements Annotator {
         if (field.type().erasure().equals(field.type().owner().ref(Set.class))) {
             field.annotate(JsonDeserialize.class).param("as", LinkedHashSet.class);
         }
+
+        if (propertyNode.has("javaJsonView")) {
+            field.annotate(JsonView.class).param(
+                "value", field.type().owner().ref(propertyNode.get("javaJsonView").asText()));
+        }
     }
 
     @Override
@@ -180,6 +187,10 @@ public class Jackson2Annotator implements Annotator {
     @Override
     public void enumValueMethod(JMethod valueMethod) {
         valueMethod.annotate(JsonValue.class);
+    }
+
+    @Override
+    public void enumConstant(JEnumConstant constant, String value) {
     }
 
     @Override

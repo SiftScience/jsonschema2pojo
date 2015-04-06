@@ -29,6 +29,7 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.annotate.JsonValue;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.annotate.JsonView;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.sun.codemodel.JAnnotationArrayMember;
@@ -41,7 +42,7 @@ import com.sun.codemodel.JMethod;
  * 
  * @see <a href="http://jackson.codehaus.org/">http://jackson.codehaus.org/</a>
  */
-public class Jackson1Annotator implements Annotator {
+public class Jackson1Annotator extends AbstractAnnotator {
 
     @Override
     public void propertyOrder(JDefinedClass clazz, JsonNode propertiesNode) {
@@ -67,6 +68,11 @@ public class Jackson1Annotator implements Annotator {
         field.annotate(JsonProperty.class).param("value", propertyName);
         if (field.type().erasure().equals(field.type().owner().ref(Set.class))) {
             field.annotate(JsonDeserialize.class).param("as", LinkedHashSet.class);
+        }
+
+        if (propertyNode.has("javaJsonView")) {
+            field.annotate(JsonView.class).param(
+                "value", field.type().owner().ref(propertyNode.get("javaJsonView").asText()));
         }
     }
 

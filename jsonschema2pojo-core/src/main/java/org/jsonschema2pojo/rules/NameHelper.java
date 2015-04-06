@@ -17,8 +17,10 @@
 package org.jsonschema2pojo.rules;
 
 import static java.lang.Character.*;
+import static javax.lang.model.SourceVersion.isKeyword;
 import static org.apache.commons.lang3.StringUtils.*;
 
+import com.sun.codemodel.JType;
 import org.apache.commons.lang3.text.WordUtils;
 
 import org.jsonschema2pojo.GenerationConfig;
@@ -60,5 +62,61 @@ public class NameHelper {
         }
 
         return name;
+    }
+
+    /**
+     * Convert jsonFieldName into the equivalent Java fieldname by replacing illegal characters and normalizing it.
+     * @param jsonFieldName
+     * @return
+     */
+    public String getPropertyName(String jsonFieldName) {
+        jsonFieldName = replaceIllegalCharacters(jsonFieldName);
+        jsonFieldName = normalizeName(jsonFieldName);
+
+        if (isKeyword(jsonFieldName)) {
+            jsonFieldName = "_" + jsonFieldName;
+        }
+
+        if (isKeyword(jsonFieldName)) {
+            jsonFieldName += "_";
+        }
+
+        return jsonFieldName;
+    }
+
+
+    /**
+     * Generate setter method name for property. 
+     * @param propertyName
+     * @return
+     */
+    public String getSetterName(String propertyName) {
+        propertyName = replaceIllegalCharacters(propertyName);
+        String setterName = "set" + capitalize(capitalizeTrailingWords(propertyName));
+
+        if (setterName.equals("setClass")) {
+            setterName = "setClass_";
+        }
+
+        return setterName;
+    }
+
+
+    /**
+     * Generate getter method name for property.
+     * @param propertyName
+     * @param type
+     * @return
+     */
+    public String getGetterName(String propertyName, JType type) {
+        String prefix = type.equals(type.owner()._ref(boolean.class)) ? "is" : "get";
+        propertyName = replaceIllegalCharacters(propertyName);
+        String getterName = prefix + capitalize(capitalizeTrailingWords(propertyName));
+
+        if (getterName.equals("getClass")) {
+            getterName = "getClass_";
+        }
+
+        return getterName;
     }
 }

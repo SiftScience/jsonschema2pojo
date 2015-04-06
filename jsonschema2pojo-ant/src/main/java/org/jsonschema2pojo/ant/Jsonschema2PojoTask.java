@@ -41,8 +41,10 @@ import org.jsonschema2pojo.Annotator;
 import org.jsonschema2pojo.GenerationConfig;
 import org.jsonschema2pojo.Jsonschema2Pojo;
 import org.jsonschema2pojo.NoopAnnotator;
+import org.jsonschema2pojo.URLProtocol;
 import org.jsonschema2pojo.SourceType;
 import org.jsonschema2pojo.rules.RuleFactory;
+import org.jsonschema2pojo.util.URLUtil;
 
 /**
  * When invoked, this task reads one or more <a
@@ -65,9 +67,11 @@ public class Jsonschema2PojoTask extends Task implements GenerationConfig {
 
     private boolean usePublicFields;
 
+    private boolean includeConstructors = false;
+
     private boolean usePrimitives;
 
-    private File source;
+    private String source;
 
     private File targetDirectory;
 
@@ -102,10 +106,20 @@ public class Jsonschema2PojoTask extends Task implements GenerationConfig {
     private String outputEncoding = "UTF-8";
 
     private boolean useJodaDates = false;
+
+    private boolean useJodaLocalDates = false;
+
+    private boolean useJodaLocalTimes = false;
     
     private boolean useCommonsLang3 = false;
 
     private boolean initializeCollections = true;
+
+    private String classNamePrefix = "";
+
+    private String classNameSuffix = "";
+
+    private boolean constructorsRequiredPropertiesOnly = false;
 
     /**
      * Execute this task (it's expected that all relevant setters will have been
@@ -128,9 +142,22 @@ public class Jsonschema2PojoTask extends Task implements GenerationConfig {
             return;
         }
 
-        if (!source.exists()) {
-            log(source.getAbsolutePath() + " cannot be found");
+        // attempt to parse the url
+        URL sourceURL;
+        try {
+            sourceURL = URLUtil.parseURL(source);
+        } catch (IllegalArgumentException e) {
+            log(String.format("Invalid schema source provided: %s", source));
             return;
+        }
+
+        // if url is a file, ensure it exists
+        if (URLUtil.parseProtocol(sourceURL.toString()) == URLProtocol.FILE) {
+            File sourceFile = new File(sourceURL.getFile());
+            if (!sourceFile.exists()) {
+                log(sourceFile.getAbsolutePath() + " cannot be found");
+                return;
+            }
         }
 
         if (targetDirectory == null) {
@@ -144,7 +171,7 @@ public class Jsonschema2PojoTask extends Task implements GenerationConfig {
         try {
             Jsonschema2Pojo.generate(this);
         } catch (IOException e) {
-            throw new BuildException("Error generating classes from JSON Schema file(s) " + source.getPath(), e);
+            throw new BuildException("Error generating classes from JSON Schema file(s) " + source, e);
         }
     }
 
@@ -174,6 +201,22 @@ public class Jsonschema2PojoTask extends Task implements GenerationConfig {
                 return new URLClassLoader(classpathUrls.toArray(new URL[classpathUrls.size()]), parentClassloader);
             }
         });
+    }
+
+    /**
+     * Sets the 'includeConstructors' property of this class
+     * @param includeConstructors Whether to generate constructors or not.
+     */
+    public void setIncludeConstructors(boolean includeConstructors) {
+        this.includeConstructors = includeConstructors;
+    }
+
+    /**
+     * Sets the 'constructorsRequiredPropertiesOnly' property of this class.
+     * @param constructorsRequiredPropertiesOnly Whether generated constructors should have parameters for all properties, or only required ones.
+     */
+    public void setConstructorsRequiredPropertiesOnly(boolean constructorsRequiredPropertiesOnly) {
+        this.constructorsRequiredPropertiesOnly = constructorsRequiredPropertiesOnly;
     }
 
     /**
@@ -277,7 +320,7 @@ public class Jsonschema2PojoTask extends Task implements GenerationConfig {
      *            Location of the JSON Schema file(s). Note: this may refer to a
      *            single file or a directory of files.
      */
-    public void setSource(File source) {
+    public void setSource(String source) {
         this.source = source;
     }
 
@@ -456,6 +499,30 @@ public class Jsonschema2PojoTask extends Task implements GenerationConfig {
     }
 
     /**
+     * Sets the 'useJodaLocalDates' property of this class
+     *
+     * @param useJodaLocalDates
+     *            Whether to use {@link org.joda.time.LocalDate} instead of
+     *            string when adding string fields of format date
+     *            (not date-time) to generated Java types.
+     */
+    public void setUseJodaLocalDates(boolean useJodaLocalDates) {
+        this.useJodaLocalDates = useJodaLocalDates;
+    }
+
+    /**
+     * Sets the 'useJodaLocalTimes' property of this class
+     *
+     * @param useJodaLocalTimes
+     *            Whether to use {@link org.joda.time.LocalTime} instead of
+     *            string when adding string fields of format time
+     *            (not date-time) to generated Java types.
+     */
+    public void setUseJodaLocalTimes(boolean useJodaLocalTimes) {
+        this.useJodaLocalTimes = useJodaLocalTimes;
+    }
+
+    /**
      * Sets the 'useCommonsLang3' property of this class
      * 
      * @param useCommonsLang3
@@ -504,8 +571,8 @@ public class Jsonschema2PojoTask extends Task implements GenerationConfig {
     }
 
     @Override
-    public Iterator<File> getSource() {
-        return Collections.singleton(source).iterator();
+    public Iterator<URL> getSource() {
+        return Collections.singleton(URLUtil.parseURL(source)).iterator();
     }
 
     @Override
@@ -614,6 +681,16 @@ public class Jsonschema2PojoTask extends Task implements GenerationConfig {
     public boolean isUseJodaDates() {
         return useJodaDates;
     }
+
+    @Override
+    public boolean isUseJodaLocalDates() {
+        return useJodaLocalDates;
+    }
+
+    @Override
+    public boolean isUseJodaLocalTimes() {
+        return useJodaLocalTimes;
+    }
     
     @Override
     public boolean isUseCommonsLang3() {
@@ -628,6 +705,31 @@ public class Jsonschema2PojoTask extends Task implements GenerationConfig {
     @Override
     public boolean isInitializeCollections() {
         return initializeCollections;
+    }
+
+    @Override
+    public String getClassNamePrefix() {
+        return classNamePrefix;
+    }
+
+    @Override
+    public String getClassNameSuffix() {
+        return classNameSuffix;
+    }
+
+    @Override
+    public boolean isIncludeConstructors() {
+        return includeConstructors;
+    }
+
+    /**
+     * Gets the 'constructorsRequiredPropertiesOnly' configuration option
+     *
+     * @return Whether generated constructors should have parameters for all properties, or only required ones.
+     */
+    @Override
+    public boolean isConstructorsRequiredPropertiesOnly() {
+        return constructorsRequiredPropertiesOnly;
     }
 
 }

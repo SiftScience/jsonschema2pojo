@@ -18,6 +18,7 @@ package org.jsonschema2pojo;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.net.URL;
 import java.util.Iterator;
 import org.jsonschema2pojo.rules.RuleFactory;
 
@@ -76,7 +77,7 @@ public interface GenerationConfig {
      * @return The source file(s) or directory(ies) from which JSON Schema will
      *         be read.
      */
-    Iterator<File> getSource();
+    Iterator<URL> getSource();
 
     /**
      * Gets the 'targetDirectory' configuration option.
@@ -229,6 +230,25 @@ public interface GenerationConfig {
     boolean isUseJodaDates();
 
     /**
+     * Gets the 'useJodaLocalDates' configuration option.
+     *
+     * @return Whether to use {@link org.joda.time.LocalDate} instead of string
+     *         when adding string type fields with a format of date
+     *         (not date-time) to generated Java types.
+     */
+    boolean isUseJodaLocalDates();
+
+
+    /**
+     * Gets the 'useJodaLocalTimes' configuration option.
+     *
+     * @return Whether to use {@link org.joda.time.LocalTime} instead of string
+     *         when adding string type fields with a format of time
+     *         (not date-time) to generated Java types.
+     */
+    boolean isUseJodaLocalTimes();
+
+    /**
      * Gets the 'useCommonsLang3' configuration option.
      * 
      * @return Whether to use commons-lang 3.x imports instead of commons-lang
@@ -249,4 +269,32 @@ public interface GenerationConfig {
      * @return Whether to initialize collections with empty instance or null.
      */
     boolean isInitializeCollections();
+    
+    /**
+     * Gets the 'getClassNamePrefix' configuration option.
+     *
+     * @return Whether to initialize collections with empty instance or null.
+     */
+    String getClassNamePrefix();
+    
+    /**
+     * Gets the 'getClassNameSuffix' configuration option.
+     *
+     * @return Whether to initialize collections with empty instance or null.
+     */
+    String getClassNameSuffix();
+
+    /**
+     * Gets the 'includeConstructors' configuration option
+     *
+     * @return Whether to generate constructors or not.
+     */
+    boolean isIncludeConstructors();
+
+    /**
+     * Gets the 'constructorsRequiredPropertiesOnly' configuration option
+     *
+     * @return Whether generated constructors should have parameters for all properties, or only required ones.
+     */
+    boolean isConstructorsRequiredPropertiesOnly();
 }
