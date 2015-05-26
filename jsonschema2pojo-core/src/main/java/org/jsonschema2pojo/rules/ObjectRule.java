@@ -185,7 +185,7 @@ public class ObjectRule implements Rule<JPackage, JType> {
      * of any {@link java.util.Collection} arguments.
      */
     private void addConstructor(JDefinedClass jclass, JDefinedClass builderClass) {
-        JMethod constructor = jclass.constructor(JMod.PRIVATE);
+        JMethod constructor = jclass.constructor(JMod.PROTECTED);
 
         JVar builder = constructor.param(safeNarrow(builderClass, builderClass.typeParams()),
                 "builder");
@@ -227,7 +227,7 @@ public class ObjectRule implements Rule<JPackage, JType> {
     private JDefinedClass generateExternalBuilder(JDefinedClass jclass) throws JClassAlreadyExistsException {
         JDefinedClass builderClass = jclass._class(JMod.PUBLIC | JMod.STATIC | JMod.FINAL, "Builder");
 
-        builderClass.constructor(JMod.PRIVATE);
+        builderClass.constructor(JMod.PROTECTED);
 
         // add type parameters if we have them
         if (!isEmpty(jclass.typeParams())) {

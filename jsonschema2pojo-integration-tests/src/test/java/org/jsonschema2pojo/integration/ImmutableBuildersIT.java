@@ -26,6 +26,7 @@ import com.google.common.collect.Lists;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -131,6 +132,12 @@ public class ImmutableBuildersIT {
         assertNotEquals(0, Modifier.FINAL & generatedType.getField("bar").getModifiers());
         assertNotEquals(0, Modifier.FINAL & generatedType.getField("baz").getModifiers());
         assertNotEquals(0, Modifier.FINAL & generatedType.getField("qux").getModifiers());
+
+        // the constructors should be protected
+        for (Constructor<?> constructor : generatedType.getDeclaredConstructors()) {
+            assertTrue(constructor + " is not protected",
+                Modifier.isProtected(constructor.getModifiers()));
+        }
 
         // Check that the generated type has no getters or setters (except for getAdditionalProperties, which Jackson
         // currently requires for serialization.

@@ -75,7 +75,7 @@ public class Jackson2Annotator extends AbstractAnnotator {
 
     @Override
     public void objectBuilder(JDefinedClass clazz, JDefinedClass builder) {
-        JMethod constructor = clazz.constructor(JMod.PRIVATE);
+        JMethod constructor = clazz.constructor(JMod.PROTECTED);
         constructor.annotate(JsonCreator.class);
         JBlock body = constructor.body();
 
