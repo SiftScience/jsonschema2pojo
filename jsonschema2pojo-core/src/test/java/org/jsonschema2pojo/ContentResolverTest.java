@@ -90,6 +90,21 @@ public class ContentResolverTest {
 
     }
 
+    @Test
+    public void yamlURIsAreResolved() throws IOException {
+        URI schemaFile;
+        JsonNode uriContent;
+
+        schemaFile = URI.create("classpath:schema/address.yaml");
+        uriContent = resolver.resolve(schemaFile);
+        assertThat(uriContent.path("description").asText().length(), is(greaterThan(0)));
+
+        schemaFile = URI.create("java:schema/address.yaml");
+        uriContent = resolver.resolve(schemaFile);
+        assertThat(uriContent.path("description").asText().length(), is(greaterThan(0)));
+
+    }
+
     private URI createSchemaFile() throws IOException {
         File tempFile = File.createTempFile("jsonschema2pojotest", "json");
         tempFile.deleteOnExit();
@@ -106,5 +121,4 @@ public class ContentResolverTest {
         
         return tempFile.toURI();
     }
-    
 }

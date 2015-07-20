@@ -30,6 +30,7 @@ import java.util.Set;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 /**
  * Reads URI contents for various protocols.
@@ -37,8 +38,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ContentResolver {
 
     private static final Set<String> CLASSPATH_SCHEMES = new HashSet<String>(asList("classpath", "resource", "java"));
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper()
         .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
+
+    private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory())
+        .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
+
+    private static ObjectMapper getMapper(URI uri) {
+        return uri != null && (
+            (uri.getPath() != null && uri.getPath().endsWith(".yaml")) ||
+            (uri.getSchemeSpecificPart() != null && uri.getSchemeSpecificPart().endsWith(".yaml")))
+            ? YAML_MAPPER : JSON_MAPPER;
+    }
+
 
     /**
      * Resolve a given URI to read its contents and parse the result as JSON.
@@ -62,7 +74,7 @@ public class ContentResolver {
         }
 
         try {
-            return OBJECT_MAPPER.readTree(uri.toURL());
+            return getMapper(uri).readTree(uri.toURL());
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Error parsing document: " + uri, e);
         } catch (MalformedURLException e) {
@@ -83,7 +95,7 @@ public class ContentResolver {
         }
 
         try {
-            return OBJECT_MAPPER.readTree(contentAsStream);
+            return getMapper(uri).readTree(contentAsStream);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Error parsing document: " + uri, e);
         } catch (MalformedURLException e) {
