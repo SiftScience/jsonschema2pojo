@@ -25,10 +25,10 @@ import org.gradle.api.tasks.TaskAction
  *
  * @author Ben Manes (ben.manes@gmail.com)
  */
-class GenerateJsonSchemaTask extends DefaultTask {
+class GenerateJsonSchemaJavaTask extends DefaultTask {
   def configuration
 
-  GenerateJsonSchemaTask() {
+  GenerateJsonSchemaJavaTask() {
     description = 'Generates Java classes from a json schema.'
     group = 'Build'
 
@@ -41,10 +41,8 @@ class GenerateJsonSchemaTask extends DefaultTask {
       
       if (project.plugins.hasPlugin('java')) {
         configureJava()
-      } else if (project.plugins.hasPlugin('com.android.application') || project.plugins.hasPlugin('com.android.library')) {
-        configureAndroid()
       } else {
-        throw new GradleException('generateJsonSchema: Java or Android plugin required')
+        throw new GradleException('generateJsonSchema: Java plugin is required')
       }
       outputs.dir configuration.targetDirectory
     }
@@ -58,24 +56,6 @@ class GenerateJsonSchemaTask extends DefaultTask {
     if (!configuration.source.hasNext()) {
       configuration.source = project.files("${project.sourceSets.main.output.resourcesDir}/json")
       configuration.source.each { it.mkdir() }
-    }
-  }
-  
-  def configureAndroid() {
-    def android = project.extensions.android
-    android.sourceSets.main.java.srcDirs += [ configuration.targetDirectory ]
-    android.applicationVariants.all { variant ->
-      dependsOn("process${variant.name.capitalize()}Resources")
-      variant.javaCompile.dependsOn(this)
-    }
-    
-    if (!configuration.source.hasNext()) {
-      configuration.source = project.files(
-        android.sourceSets.main.resources.srcDirs.collect { 
-          "${it}/json"
-        }.findAll {
-          project.file(it).exists() 
-        })
     }
   }
 
