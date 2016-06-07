@@ -263,8 +263,9 @@ public class ObjectRule implements Rule<JPackage, JType> {
         JVar builderVar = body.decl(safeNarrow(builderClass, builderClass.typeParams()), "builder",
                 JExpr._new(safeNarrow(builderClass, builderClass.typeParams())));
         for (Map.Entry<String, JFieldVar> e : jclass.fields().entrySet()) {
-            body.add(builderVar.invoke("with" + capitalize(e.getKey())).arg(
-                    immutableCopy(JExpr.ref("from").ref(e.getKey()), e.getValue().type())));
+            body.add(builderVar.invoke("with" + capitalize(
+                    ruleFactory.getNameHelper().capitalizeTrailingWords(e.getKey())
+            )).arg(immutableCopy(JExpr.ref("from").ref(e.getKey()), e.getValue().type())));
         }
 
         for (JTypeVar param : jclass.typeParams()) {

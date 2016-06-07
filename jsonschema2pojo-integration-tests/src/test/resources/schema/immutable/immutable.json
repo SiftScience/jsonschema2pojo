@@ -24,6 +24,9 @@
         "default_int": {
             "type": "integer",
             "default": 42
+        },
+        "enum": {
+            "type": "array"
         }
     }
 }
