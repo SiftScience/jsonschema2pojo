@@ -35,6 +35,8 @@ import org.jsonschema2pojo.exception.GenerationException;
 import org.jsonschema2pojo.rules.RuleFactory;
 import org.jsonschema2pojo.util.URLUtil;
 
+import java.lang.reflect.InvocationTargetException;
+
 public class Jsonschema2Pojo {
     /**
      * Reads the contents of the given source and initiates schema generation.
@@ -48,7 +50,7 @@ public class Jsonschema2Pojo {
      * @throws IOException
      *             if the application is unable to read data from the source
      */
-    public static void generate(GenerationConfig config) throws IOException {
+    public static void generate(GenerationConfig config) throws IOException, NoSuchMethodException, InvocationTargetException {
         Annotator annotator = getAnnotator(config);
         RuleFactory ruleFactory = createRuleFactory(config);
 
@@ -134,11 +136,12 @@ public class Jsonschema2Pojo {
         f.delete();
     }
 
-    private static Annotator getAnnotator(GenerationConfig config) {
+    private static Annotator getAnnotator(GenerationConfig config) 
+            throws NoSuchMethodException, InvocationTargetException {
         AnnotatorFactory factory = new AnnotatorFactory();
         return factory.getAnnotator(
                 factory.getAnnotator(config.getAnnotationStyle(), config),
-                factory.getAnnotator(config.getCustomAnnotator()));
+                factory.getAnnotator(config.getCustomAnnotator(), config));
     }
 
     private static String getNodeName(URL file) {
