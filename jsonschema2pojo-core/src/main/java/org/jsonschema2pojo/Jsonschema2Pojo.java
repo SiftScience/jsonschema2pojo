@@ -137,7 +137,7 @@ public class Jsonschema2Pojo {
     private static Annotator getAnnotator(GenerationConfig config) {
         AnnotatorFactory factory = new AnnotatorFactory();
         return factory.getAnnotator(
-                factory.getAnnotator(config.getAnnotationStyle()),
+                factory.getAnnotator(config.getAnnotationStyle(), config),
                 factory.getAnnotator(config.getCustomAnnotator()));
     }
 

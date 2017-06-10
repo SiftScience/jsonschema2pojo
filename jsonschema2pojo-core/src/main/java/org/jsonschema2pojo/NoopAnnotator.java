@@ -23,4 +23,11 @@ package org.jsonschema2pojo;
  */
 public class NoopAnnotator extends AbstractAnnotator {
 
+	public NoopAnnotator() {
+	}
+
+	public NoopAnnotator(GenerationConfig generationConfig) {
+	    super(generationConfig);
+	}
+
 }
