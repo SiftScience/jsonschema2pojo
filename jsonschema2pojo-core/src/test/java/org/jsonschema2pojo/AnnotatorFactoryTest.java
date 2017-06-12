@@ -31,7 +31,7 @@ public class AnnotatorFactoryTest {
     private AnnotatorFactory factory = new AnnotatorFactory();
 
     @Test
-    public void canCreateCorrectAnnotatorFromAnnotationStyle() {
+    public void canCreateCorrectAnnotatorFromAnnotationStyle() throws InvocationTargetException {
         GenerationConfig config = mock(GenerationConfig.class);
 
         assertThat(factory.getAnnotator(JACKSON1, config), is(instanceOf(Jackson1Annotator.class)));
@@ -43,7 +43,7 @@ public class AnnotatorFactoryTest {
     }
 
     @Test
-    public void canCreateCorrectAnnotatorFromClass() {
+    public void canCreateCorrectAnnotatorFromClass() throws NoSuchMethodException, InvocationTargetException {
         GenerationConfig config = mock(GenerationConfig.class);
         assertThat(factory.getAnnotator(Jackson1Annotator.class, config), is(instanceOf(Jackson1Annotator.class)));
     }
