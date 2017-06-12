@@ -34,7 +34,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.sun.codemodel.JExpression;
+import com.sun.codemodel.*;
 import org.jsonschema2pojo.GenerationConfig;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -51,23 +51,6 @@ import org.jsonschema2pojo.util.TypeUtil;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.sun.codemodel.ClassType;
-import com.sun.codemodel.JAnnotationUse;
-import com.sun.codemodel.JBlock;
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JClassAlreadyExistsException;
-import com.sun.codemodel.JClassContainer;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JFieldVar;
-import com.sun.codemodel.JInvocation;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JMod;
-import com.sun.codemodel.JOp;
-import com.sun.codemodel.JPackage;
-import com.sun.codemodel.JType;
-import com.sun.codemodel.JTypeVar;
-import com.sun.codemodel.JVar;
 
 /**
  * Applies the generation steps required for schemas of type "object".
@@ -263,15 +246,17 @@ public class ObjectRule implements Rule<JPackage, JType> {
         JVar builderVar = body.decl(safeNarrow(builderClass, builderClass.typeParams()), "builder",
                 JExpr._new(safeNarrow(builderClass, builderClass.typeParams())));
         for (Map.Entry<String, JFieldVar> e : jclass.fields().entrySet()) {
+
+            // needs careful newline love
+            JInvocation withInvocation = builderVar.invoke("with" +
+                    capitalize(ruleFactory.getNameHelper().capitalizeTrailingWords(e.getKey())));
+            JFieldRef fromRef = JExpr.ref("from").ref(e.getKey());
             if (ruleFactory.getGenerationConfig().isImmutable()) {
-                body.add(builderVar.invoke("with" + capitalize(
-                        ruleFactory.getNameHelper().capitalizeTrailingWords(e.getKey())
-                )).arg(immutableCopy(JExpr.ref("from").ref(e.getKey()), e.getValue().type())));
+                body.add(withInvocation.arg(immutableCopy(fromRef, e.getValue().type())));
             } else {
-                body.add(builderVar.invoke("with" + capitalize(
-                        ruleFactory.getNameHelper().capitalizeTrailingWords(e.getKey())
-                )).arg(JExpr.ref("from").ref(e.getKey())));
+                body.add(withInvocation.arg(fromRef));
             }
+
         }
 
         for (JTypeVar param : jclass.typeParams()) {

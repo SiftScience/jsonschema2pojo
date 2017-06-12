@@ -50,7 +50,8 @@ public class Jsonschema2Pojo {
      * @throws IOException
      *             if the application is unable to read data from the source
      */
-    public static void generate(GenerationConfig config) throws IOException, NoSuchMethodException, InvocationTargetException {
+    public static void generate(GenerationConfig config)
+            throws IOException, NoSuchMethodException, InvocationTargetException {
         Annotator annotator = getAnnotator(config);
         RuleFactory ruleFactory = createRuleFactory(config);
 

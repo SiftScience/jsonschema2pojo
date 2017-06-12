@@ -137,12 +137,10 @@ public class Jackson2Annotator extends AbstractAnnotator {
                                 .annotate(annotation.getAnnotationClass())
                                 .param("value", str);
 
-                        if (this.getGenerationConfig().isImmutable()) {
-                            body.assign(JExpr._this().ref(field.name()),
-                                    immutableCopy(assignment, field.type()));
-                        } else {
-                            body.assign(JExpr._this().ref(field.name()), assignment);
-                        }
+                        JExpression rhs = this.getGenerationConfig().isImmutable() ?
+                                immutableCopy(assignment, field.type()) :
+                                assignment;
+                        body.assign(JExpr._this().ref(field.name()), rhs);
                     }
                 }
             }
