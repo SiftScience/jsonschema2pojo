@@ -51,10 +51,10 @@ public class MutableBuildersIT {
 
         // Check that none of the generated fields are all final.
         Class generatedType = resultsClassLoader.loadClass("com.example.Immutable");
-        // assertEquals(0, Modifier.FINAL & generatedType.getDeclaredField("foo").getModifiers());
-        // assertEquals(0, Modifier.FINAL & generatedType.getDeclaredField("bar").getModifiers());
-        // assertEquals(0, Modifier.FINAL & generatedType.getDeclaredField("baz").getModifiers());
-        // assertEquals(0, Modifier.FINAL & generatedType.getDeclaredField("qux").getModifiers());
+        assertEquals(0, Modifier.FINAL & generatedType.getDeclaredField("foo").getModifiers());
+        assertEquals(0, Modifier.FINAL & generatedType.getDeclaredField("bar").getModifiers());
+        assertEquals(0, Modifier.FINAL & generatedType.getDeclaredField("baz").getModifiers());
+        assertEquals(0, Modifier.FINAL & generatedType.getDeclaredField("qux").getModifiers());
 
         // Build an instance.
          Method newBuilder = generatedType.getMethod("newBuilder");
@@ -107,7 +107,7 @@ public class MutableBuildersIT {
         assertEquals(5, jsonified.get("qux").get(3).asInt());
         assertEquals(42, jsonified.get("default_int").asInt());
         assertEquals("world", jsonified.get("hello").asText());
-         assertEquals(0, jsonified.get("a").asInt());
+        assertEquals(0, jsonified.get("a").asInt());
 
         // Check that deserialization works.
         assertEquals(instance, mapper.readValue(mapper.writeValueAsString(instance), generatedType));
