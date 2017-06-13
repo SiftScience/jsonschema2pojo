@@ -58,6 +58,29 @@ public class AnnotatorFactory {
      *            A class implementing {@link Annotator}.
      * @return an instance of the given annotator type
      */
+    public Annotator getAnnotator(Class<? extends Annotator> clazz) {
+
+        if (!Annotator.class.isAssignableFrom(clazz)) {
+            throw new IllegalArgumentException("The class name given as a custom annotator (" + clazz.getName() + ") does not refer to a class that implements " + Annotator.class.getName());
+        }
+
+        try {
+            return clazz.newInstance();
+        } catch (InstantiationException e) {
+            throw new IllegalArgumentException("Failed to create a custom annotator from the given class. An exception was thrown on trying to create a new instance.", e.getCause());
+        } catch (IllegalAccessException e) {
+            throw new IllegalArgumentException("Failed to create a custom annotator from the given class. It appears that we do not have access to this class - is both the class and its no-arg constructor marked public?", e);
+        }
+
+    }
+
+    /**
+     * Create a new custom {@link Annotator} from the given class and configuration {@link GenerationConfig}.
+     * 
+     * @param clazz
+     *            A class implementing {@link Annotator}.
+     * @return an instance of the given annotator type
+     */
     public Annotator getAnnotator(Class<? extends Annotator> clazz, GenerationConfig config)
             throws NoSuchMethodException, InvocationTargetException {
 

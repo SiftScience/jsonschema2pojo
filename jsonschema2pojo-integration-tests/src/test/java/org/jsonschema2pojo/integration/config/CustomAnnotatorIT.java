@@ -24,7 +24,9 @@ import java.lang.reflect.Method;
 
 import com.sun.codemodel.JVar;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.jsonschema2pojo.AbstractAnnotator;
 import org.jsonschema2pojo.Annotator;
+import org.jsonschema2pojo.GenerationConfig;
 import org.junit.Test;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -106,7 +108,14 @@ public class CustomAnnotatorIT {
     /**
      * Example custom annotator that deprecates <em>everything</em>.
      */
-    public static class DeprecatingAnnotator implements Annotator {
+    public static class DeprecatingAnnotator extends AbstractAnnotator implements Annotator {
+
+        public DeprecatingAnnotator() {
+        }
+
+        public DeprecatingAnnotator(GenerationConfig generationConfig) {
+            super(generationConfig);
+        }
 
         @Override
         public void propertyOrder(JDefinedClass clazz, JsonNode propertiesNode) {

@@ -32,6 +32,7 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.net.QuotedPrintableCodec;
 import org.hamcrest.Matcher;
 import org.jsonschema2pojo.AbstractAnnotator;
+import org.jsonschema2pojo.GenerationConfig;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -247,6 +248,15 @@ public class MediaIT {
         public static final String QUOTED_PRINTABLE = "quoted-printable";
         public static final String USING = "using";
         public static final String INCLUDE = "include";
+
+        public QuotedPrintableAnnotator() {
+        }
+
+        public QuotedPrintableAnnotator(GenerationConfig generationConfig) {
+            super(generationConfig);
+        }
+
+
         @Override
         public void propertyField(JFieldVar field, JDefinedClass clazz, String propertyName, JsonNode propertyNode) {
             if( isQuotedPrintableProperty(propertyNode) ) {

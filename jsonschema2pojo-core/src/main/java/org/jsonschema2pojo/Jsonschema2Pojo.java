@@ -31,6 +31,7 @@ import java.util.List;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOExceptionWithCause;
 import org.jsonschema2pojo.exception.GenerationException;
 import org.jsonschema2pojo.rules.RuleFactory;
 import org.jsonschema2pojo.util.URLUtil;
@@ -51,8 +52,16 @@ public class Jsonschema2Pojo {
      *             if the application is unable to read data from the source
      */
     public static void generate(GenerationConfig config)
-            throws IOException, NoSuchMethodException, InvocationTargetException {
-        Annotator annotator = getAnnotator(config);
+            throws IOException {
+        Annotator annotator = null;
+
+        try {
+            annotator = getAnnotator(config);
+        } catch (NoSuchMethodException e) {
+            throw new GenerationException("Encountered NoSuchMethodException during generate");
+        } catch (InvocationTargetException e) {
+            throw new GenerationException("Encountered InvocationTargetException during generate");
+        }
         RuleFactory ruleFactory = createRuleFactory(config);
 
         ruleFactory.setAnnotator(annotator);
