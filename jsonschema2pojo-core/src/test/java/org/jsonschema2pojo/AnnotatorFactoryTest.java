@@ -31,21 +31,21 @@ public class AnnotatorFactoryTest {
     private AnnotatorFactory factory = new AnnotatorFactory();
 
     @Test
-    public void canCreateCorrectAnnotatorFromAnnotationStyle() {
+    public void canCreateCorrectAnnotatorFromAnnotationStyle() throws InvocationTargetException {
+        GenerationConfig config = mock(GenerationConfig.class);
 
-        assertThat(factory.getAnnotator(JACKSON1), is(instanceOf(Jackson1Annotator.class)));
-        assertThat(factory.getAnnotator(JACKSON), is(instanceOf(Jackson2Annotator.class)));
-        assertThat(factory.getAnnotator(JACKSON2), is(instanceOf(Jackson2Annotator.class)));
-        assertThat(factory.getAnnotator(GSON), is(instanceOf(GsonAnnotator.class)));
-        assertThat(factory.getAnnotator(NONE), is(instanceOf(NoopAnnotator.class)));
+        assertThat(factory.getAnnotator(JACKSON1, config), is(instanceOf(Jackson1Annotator.class)));
+        assertThat(factory.getAnnotator(JACKSON, config), is(instanceOf(Jackson2Annotator.class)));
+        assertThat(factory.getAnnotator(JACKSON2, config), is(instanceOf(Jackson2Annotator.class)));
+        assertThat(factory.getAnnotator(GSON, config), is(instanceOf(GsonAnnotator.class)));
+        assertThat(factory.getAnnotator(NONE, config), is(instanceOf(NoopAnnotator.class)));
 
     }
 
     @Test
-    public void canCreateCorrectAnnotatorFromClass() {
-
-        assertThat(factory.getAnnotator(Jackson1Annotator.class), is(instanceOf(Jackson1Annotator.class)));
-
+    public void canCreateCorrectAnnotatorFromClass() throws NoSuchMethodException, InvocationTargetException {
+        GenerationConfig config = mock(GenerationConfig.class);
+        assertThat(factory.getAnnotator(Jackson1Annotator.class, config), is(instanceOf(Jackson1Annotator.class)));
     }
     
     @Test
@@ -69,7 +69,7 @@ public class AnnotatorFactoryTest {
     @Test(expected = IllegalArgumentException.class)
     public void attemptToCreateAnnotatorFromIncompatibleClassCausesIllegalArgumentException() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
-        Method factoryMethod = AnnotatorFactory.class.getMethod("getAnnotator", Class.class);
+        Method factoryMethod = AnnotatorFactory.class.getMethod("getAnnotator", Class.class, GenerationConfig.class);
         factoryMethod.invoke(String.class);
 
     }

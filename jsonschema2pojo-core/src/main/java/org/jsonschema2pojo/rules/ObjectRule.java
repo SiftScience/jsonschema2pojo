@@ -23,7 +23,6 @@ import java.io.Serializable;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 
-import static org.apache.commons.lang3.StringUtils.*;
 import static org.apache.commons.lang3.ArrayUtils.*;
 
 import javax.annotation.Generated;
@@ -31,26 +30,6 @@ import javax.annotation.Generated;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.sun.codemodel.JExpression;
-import org.jsonschema2pojo.GenerationConfig;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Generated;
-
-import org.jsonschema2pojo.AnnotationStyle;
-import org.jsonschema2pojo.Schema;
-import org.jsonschema2pojo.SchemaMapper;
-import org.jsonschema2pojo.exception.ClassAlreadyExistsException;
-import org.jsonschema2pojo.util.TypeUtil;
-
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JAnnotationUse;
 import com.sun.codemodel.JBlock;
@@ -68,6 +47,23 @@ import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JTypeVar;
 import com.sun.codemodel.JVar;
+import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JFieldRef;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+
+import org.jsonschema2pojo.GenerationConfig;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.jsonschema2pojo.AnnotationStyle;
+import org.jsonschema2pojo.Schema;
+import org.jsonschema2pojo.SchemaMapper;
+import org.jsonschema2pojo.exception.ClassAlreadyExistsException;
+import org.jsonschema2pojo.util.TypeUtil;
 
 /**
  * Applies the generation steps required for schemas of type "object".
@@ -263,9 +259,17 @@ public class ObjectRule implements Rule<JPackage, JType> {
         JVar builderVar = body.decl(safeNarrow(builderClass, builderClass.typeParams()), "builder",
                 JExpr._new(safeNarrow(builderClass, builderClass.typeParams())));
         for (Map.Entry<String, JFieldVar> e : jclass.fields().entrySet()) {
-            body.add(builderVar.invoke("with" + capitalize(
-                    ruleFactory.getNameHelper().capitalizeTrailingWords(e.getKey())
-            )).arg(immutableCopy(JExpr.ref("from").ref(e.getKey()), e.getValue().type())));
+
+            // needs careful newline love
+            JInvocation withInvocation = builderVar.invoke("with" +
+                    capitalize(ruleFactory.getNameHelper().capitalizeTrailingWords(e.getKey())));
+            JFieldRef fromRef = JExpr.ref("from").ref(e.getKey());
+            if (ruleFactory.getGenerationConfig().isImmutable()) {
+                body.add(withInvocation.arg(immutableCopy(fromRef, e.getValue().type())));
+            } else {
+                body.add(withInvocation.arg(fromRef));
+            }
+
         }
 
         for (JTypeVar param : jclass.typeParams()) {

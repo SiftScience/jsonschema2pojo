@@ -38,6 +38,13 @@ import com.sun.codemodel.JFieldVar;
  *      href="https://code.google.com/p/google-gson/">https://code.google.com/p/google-gson/</a>
  */
 public class GsonAnnotator extends AbstractAnnotator {
+    
+    public GsonAnnotator() {
+    }
+
+    public GsonAnnotator(GenerationConfig generationConfig) {
+        super(generationConfig);
+    }
 
     @Override
     public void propertyField(JFieldVar field, JDefinedClass clazz, String propertyName, JsonNode propertyNode) {

@@ -43,6 +43,13 @@ import com.sun.codemodel.JMethod;
  * @see <a href="http://jackson.codehaus.org/">http://jackson.codehaus.org/</a>
  */
 public class Jackson1Annotator extends AbstractAnnotator {
+    
+    public Jackson1Annotator() {
+    }
+
+    public Jackson1Annotator(GenerationConfig generationConfig) {
+        super(generationConfig);
+    }
 
     @Override
     public void propertyOrder(JDefinedClass clazz, JsonNode propertiesNode) {

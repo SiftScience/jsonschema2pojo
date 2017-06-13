@@ -58,6 +58,13 @@ import static org.jsonschema2pojo.rules.ObjectRule.immutableCopy;
  *      href="https://github.com/FasterXML/jackson-annotations">https://github.com/FasterXML/jackson-annotations</a>
  */
 public class Jackson2Annotator extends AbstractAnnotator {
+    
+    public Jackson2Annotator() {
+    }
+
+    public Jackson2Annotator(GenerationConfig generationConfig) {
+        super(generationConfig);
+    }
 
     @Override
     public void propertyOrder(JDefinedClass clazz, JsonNode propertiesNode) {
@@ -129,9 +136,11 @@ public class Jackson2Annotator extends AbstractAnnotator {
                         constructor.param(field.type(), field.name())
                                 .annotate(annotation.getAnnotationClass())
                                 .param("value", str);
-                        body.assign(JExpr._this().ref(field.name()),
-                                // TODO(micah): this should respect immutability config
-                                immutableCopy(assignment, field.type()));
+
+                        JExpression rhs = this.getGenerationConfig().isImmutable() ?
+                                immutableCopy(assignment, field.type()) :
+                                assignment;
+                        body.assign(JExpr._this().ref(field.name()), rhs);
                     }
                 }
             }

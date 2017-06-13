@@ -31,9 +31,12 @@ import java.util.List;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOExceptionWithCause;
 import org.jsonschema2pojo.exception.GenerationException;
 import org.jsonschema2pojo.rules.RuleFactory;
 import org.jsonschema2pojo.util.URLUtil;
+
+import java.lang.reflect.InvocationTargetException;
 
 public class Jsonschema2Pojo {
     /**
@@ -48,8 +51,17 @@ public class Jsonschema2Pojo {
      * @throws IOException
      *             if the application is unable to read data from the source
      */
-    public static void generate(GenerationConfig config) throws IOException {
-        Annotator annotator = getAnnotator(config);
+    public static void generate(GenerationConfig config)
+            throws IOException {
+        Annotator annotator = null;
+
+        try {
+            annotator = getAnnotator(config);
+        } catch (NoSuchMethodException e) {
+            throw new GenerationException("Encountered NoSuchMethodException during generate");
+        } catch (InvocationTargetException e) {
+            throw new GenerationException("Encountered InvocationTargetException during generate");
+        }
         RuleFactory ruleFactory = createRuleFactory(config);
 
         ruleFactory.setAnnotator(annotator);
@@ -134,11 +146,12 @@ public class Jsonschema2Pojo {
         f.delete();
     }
 
-    private static Annotator getAnnotator(GenerationConfig config) {
+    private static Annotator getAnnotator(GenerationConfig config) 
+            throws NoSuchMethodException, InvocationTargetException {
         AnnotatorFactory factory = new AnnotatorFactory();
         return factory.getAnnotator(
-                factory.getAnnotator(config.getAnnotationStyle()),
-                factory.getAnnotator(config.getCustomAnnotator()));
+                factory.getAnnotator(config.getAnnotationStyle(), config),
+                factory.getAnnotator(config.getCustomAnnotator(), config));
     }
 
     private static String getNodeName(URL file) {
