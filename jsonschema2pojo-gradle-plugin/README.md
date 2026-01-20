@@ -1,26 +1,50 @@
 # Gradle jsonschema2pojo plugin
 
 [jsonschema2pojo](http://www.jsonschema2pojo.org) generates a Java representation of your
-json schema. The [schema reference](https://github.com/joelittlejohn/jsonschema2pojo/wiki/Reference)
+JSON schema. The [schema reference](https://github.com/joelittlejohn/jsonschema2pojo/wiki/Reference)
 describes the rules and their effect on generated Java types.
+
+This Gradle plugin is hosted on both Maven Central and the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/org.jsonschema2pojo).
 
 ## Usage
 
-This plugin is hosted on the Maven Central Repository. All actions are logged at the `info` level.
+For Gradle 7.3 and later, you can use the plugins DSL:
+
+With Groovy:
 
 ```groovy
-apply plugin: 'jsonschema2pojo'
+plugins {
+  id "java"
+  id "org.jsonschema2pojo" version "1.2.1"
+}
 
-buildscript {
-  repositories {
-    mavenCentral()
-  }
+jsonSchema2Pojo {
+  ...
+}
+```
 
-  dependencies {
-    // this plugin
-    classpath 'org.jsonschema2pojo:jsonschema2pojo-gradle-plugin:${js2p.version}'
-    // add additional dependencies here if you wish to reference instead of generate them (see example directory)
-  }
+With Kotlin:
+
+```kotlin
+plugins {
+  id("java")
+  id("org.jsonschema2pojo") version "1.2.1"
+}
+
+jsonSchema2Pojo {
+  ...
+}
+```
+
+For Gradle 7.2.x and older, there is a [bug related to the application order of plugins](https://github.com/gradle/gradle/issues/15664) so you must use [legacy plugin application](https://plugins.gradle.org/plugin/org.jsonschema2pojo).
+
+
+Below we have a full build.gradle example, showing all available configuration options:
+
+```groovy
+plugins {
+  id "java"
+  id "org.jsonschema2pojo" version "1.2.1"
 }
 
 repositories {
@@ -28,25 +52,16 @@ repositories {
 }
 
 dependencies {
-  // Required if generating equals, hashCode, or toString methods
-  compile 'commons-lang:commons-lang:2.6'
   // Required if generating JSR-303 annotations
-  compile 'javax.validation:validation-api:1.1.0.CR2'
+  implementation 'javax.validation:validation-api:1.1.0.CR2'
+  implementation 'jakarta.validation:jakarta.validation-api:3.0.0'
   // Required if generating Jackson 2 annotations
-  compile 'com.fasterxml.jackson.core:jackson-databind:2.1.4'
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.1'
   // Required if generating JodaTime data types
-  compile 'joda-time:joda-time:2.2'
+  implementation 'joda-time:joda-time:2.2'
 }
 
-// Each configuration is set to the default value
 jsonSchema2Pojo {
-  // Whether to generate builder-style methods of the form withXxx(value) (that return this),
-  // alongside the standard, void-return setters.
-  generateBuilders = false
-
-  // Whether to use primitives (long, double, boolean) instead of wrapper types where possible
-  // when generating bean properties (has the side-effect of making those properties non-null).
-  usePrimitives = false
 
   // Location of the JSON Schema file(s). This may refer to a single file or a directory of files.
   source = files("${sourceSets.main.output.resourcesDir}/json")
@@ -147,3 +162,25 @@ This task will automatically run in a project where the `jsonSchema2Pojo` config
 It will invoke the jsonschema2pojo generator, make the compileJava task dependent of itself and add
 the `targetDirectory` to the main/java source set so the java compiler will find and compile the newly
 generated source files.
+
+## Developers
+
+It can be useful to build this project and try out changes in your existing gradle project.
+
+1. From the root, run `mvn clean install`. This will install jsonschema2pojo in your local maven repository.
+2. Include the local repo in your build.gradle, and change your dependency to use the `latest.integration` version e.g.:
+
+```groovy
+buildscript {
+    repositories {
+        mavenLocal()
+    }
+    dependencies {
+        classpath 'org.jsonschema2pojo:jsonschema2pojo-gradle-plugin:latest.integration'
+    }
+}
+
+repositories {
+    mavenLocal()
+}
+```

@@ -15,9 +15,13 @@
  */
 package org.jsonschema2pojo.gradle
 
+import org.jsonschema2pojo.GenerationConfig
 import org.jsonschema2pojo.Jsonschema2Pojo
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.model.ReplacedBy
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
 /**
@@ -26,13 +30,17 @@ import org.gradle.api.tasks.TaskAction
  * @author Ben Manes (ben.manes@gmail.com)
  */
 class GenerateJsonSchemaJavaTask extends DefaultTask {
-  def configuration
+  @ReplacedBy("configurationString")
+  GenerationConfig configuration
+
+  @Input
+  String getConfigurationString() {
+    configuration.toString();
+  }
 
   GenerateJsonSchemaJavaTask() {
     description = 'Generates Java classes from a json schema.'
     group = 'Build'
-
-    outputs.upToDateWhen { false }
 
     project.afterEvaluate {
       configuration = project.jsonSchema2Pojo
@@ -45,9 +53,11 @@ class GenerateJsonSchemaJavaTask extends DefaultTask {
         throw new GradleException('generateJsonSchema: Java plugin is required')
       }
       outputs.dir configuration.targetDirectory
+      inputs.property("configuration", configuration.toString())
+      inputs.files project.files(configuration.sourceFiles)
     }
   }
-  
+
   def configureJava() {
     project.sourceSets.main.java.srcDirs += [ configuration.targetDirectory ]
     dependsOn(project.tasks.processResources)
@@ -55,13 +65,18 @@ class GenerateJsonSchemaJavaTask extends DefaultTask {
 
     if (!configuration.source.hasNext()) {
       configuration.source = project.files("${project.sourceSets.main.output.resourcesDir}/json")
-      configuration.source.each { it.mkdir() }
+      configuration.sourceFiles.each { it.mkdir() }
     }
   }
 
   @TaskAction
   def generate() {
+    if (Boolean.TRUE == configuration.properties.get("useCommonsLang3")) {
+      logger.warn 'useCommonsLang3 is deprecated. Please remove it from your config.'
+    }
+
     logger.info 'Using this configuration:\n{}', configuration
+
     Jsonschema2Pojo.generate(configuration)
   }
 }
