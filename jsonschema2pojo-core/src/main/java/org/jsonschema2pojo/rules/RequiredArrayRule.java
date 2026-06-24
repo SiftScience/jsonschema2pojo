@@ -16,14 +16,16 @@
 
 package org.jsonschema2pojo.rules;
 
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.sun.codemodel.*;
 import org.jsonschema2pojo.Schema;
 
-import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import jakarta.validation.constraints.NotNull;
 
 import static org.apache.commons.lang3.StringUtils.capitalize;
 
@@ -80,7 +82,11 @@ public class RequiredArrayRule implements Rule<JDefinedClass, JDefinedClass> {
     }
 
     private void addNotNullAnnotation(JFieldVar field) {
-        field.annotate(NotNull.class);
+        final Class<? extends Annotation> notNullClass
+                = ruleFactory.getGenerationConfig().isUseJakartaValidation()
+                ? NotNull.class
+                : javax.validation.constraints.NotNull.class;
+        field.annotate(notNullClass);
     }
 
 

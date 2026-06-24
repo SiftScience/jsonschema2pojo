@@ -338,4 +338,9 @@ public class Arguments implements GenerationConfig {
         return constructorsRequiredPropertiesOnly;
     }
 
+    @Override
+    public boolean isUseJakartaValidation() {
+        return false;
+    }
+
 }

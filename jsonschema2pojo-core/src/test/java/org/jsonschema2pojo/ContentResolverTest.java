@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -47,6 +48,7 @@ public class ContentResolverTest {
         resolver.resolve(brokenHttpUri);
     }
     
+    @Ignore("Requires live http://json-schema.org/address — unreliable in CI")
     @Test
     public void httpLinkIsResolvedToContent() {
 

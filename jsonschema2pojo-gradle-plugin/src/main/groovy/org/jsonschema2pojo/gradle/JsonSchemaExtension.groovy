@@ -49,6 +49,7 @@ public class JsonSchemaExtension implements GenerationConfig {
   Class<? extends Annotator> customAnnotator
   Class<? extends RuleFactory> customRuleFactory
   boolean includeJsr303Annotations
+  boolean useJakartaValidation
   SourceType sourceType
   boolean removeOldOutput
   String outputEncoding
@@ -81,6 +82,7 @@ public class JsonSchemaExtension implements GenerationConfig {
     customAnnotator = NoopAnnotator.class
     customRuleFactory = RuleFactory.class
     includeJsr303Annotations = false
+    useJakartaValidation = false
     sourceType = SourceType.JSONSCHEMA
     outputEncoding = 'UTF-8'
     useJodaDates = false
@@ -161,6 +163,11 @@ public class JsonSchemaExtension implements GenerationConfig {
     }
 
     @Override
+    boolean isUseJakartaValidation() {
+        useJakartaValidation
+    }
+
+    @Override
   public String toString() {
     """|generateBuilders = ${generateBuilders}
        |generateBuilderClasses = ${generateBuilderClasses}
@@ -180,6 +187,7 @@ public class JsonSchemaExtension implements GenerationConfig {
        |customAnnotator = ${customAnnotator.getName()}
        |customRuleFactory = ${customRuleFactory.getName()}
        |includeJsr303Annotations = ${includeJsr303Annotations}
+       |useJakartaValidation = ${useJakartaValidation}
        |sourceType = ${sourceType.toString().toLowerCase()}
        |removeOldOutput = ${removeOldOutput}
        |outputEncoding = ${outputEncoding}
