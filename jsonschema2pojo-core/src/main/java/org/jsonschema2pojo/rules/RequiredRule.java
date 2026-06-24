@@ -16,13 +16,15 @@
 
 package org.jsonschema2pojo.rules;
 
-import javax.validation.constraints.NotNull;
+import java.lang.annotation.Annotation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.jsonschema2pojo.Schema;
 import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JDocCommentable;
 import com.sun.codemodel.JFieldVar;
+
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Applies the "required" schema rule.
@@ -70,7 +72,11 @@ public class RequiredRule implements Rule<JDocCommentable, JDocComment> {
 
             if (ruleFactory.getGenerationConfig().isIncludeJsr303Annotations()
                     && generatableType instanceof JFieldVar) {
-                ((JFieldVar) generatableType).annotate(NotNull.class);
+                final Class<? extends Annotation> notNullClass
+                        = ruleFactory.getGenerationConfig().isUseJakartaValidation()
+                        ? NotNull.class
+                        : javax.validation.constraints.NotNull.class;
+                ((JFieldVar) generatableType).annotate(notNullClass);
             }
         }
 

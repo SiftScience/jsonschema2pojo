@@ -16,12 +16,14 @@
 
 package org.jsonschema2pojo.rules;
 
-import javax.validation.constraints.Pattern;
+import java.lang.annotation.Annotation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.jsonschema2pojo.Schema;
 import com.sun.codemodel.JAnnotationUse;
 import com.sun.codemodel.JFieldVar;
+
+import jakarta.validation.constraints.Pattern;
 
 public class PatternRule implements Rule<JFieldVar, JFieldVar> {
 
@@ -35,7 +37,11 @@ public class PatternRule implements Rule<JFieldVar, JFieldVar> {
     public JFieldVar apply(String nodeName, JsonNode node, JFieldVar field, Schema currentSchema) {
 
         if (ruleFactory.getGenerationConfig().isIncludeJsr303Annotations()) {
-            JAnnotationUse annotation = field.annotate(Pattern.class);
+            final Class<? extends Annotation> patternClass
+                    = ruleFactory.getGenerationConfig().isUseJakartaValidation()
+                    ? Pattern.class
+                    : javax.validation.constraints.Pattern.class;
+            JAnnotationUse annotation = field.annotate(patternClass);
             annotation.param("regexp", node.asText());
         }
 

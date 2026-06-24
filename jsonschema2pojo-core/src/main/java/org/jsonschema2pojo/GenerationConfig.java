@@ -297,4 +297,11 @@ public interface GenerationConfig {
      * @return Whether generated constructors should have parameters for all properties, or only required ones.
      */
     boolean isConstructorsRequiredPropertiesOnly();
+
+    /**
+     * Gets the 'useJakartaValidation' configuration option.
+     *
+     * @return Whether to use jakarta.validation instead of javax.validation when adding JSR-303 annotations.
+     */
+    boolean isUseJakartaValidation();
 }

@@ -730,4 +730,9 @@ public class Jsonschema2PojoMojo extends AbstractMojo implements GenerationConfi
     public boolean isConstructorsRequiredPropertiesOnly() {
         return constructorsRequiredPropertiesOnly;
     }
+
+    @Override
+    public boolean isUseJakartaValidation() {
+        return false;
+    }
 }

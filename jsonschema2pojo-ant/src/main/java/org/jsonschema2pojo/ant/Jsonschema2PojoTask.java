@@ -732,4 +732,9 @@ public class Jsonschema2PojoTask extends Task implements GenerationConfig {
         return constructorsRequiredPropertiesOnly;
     }
 
+    @Override
+    public boolean isUseJakartaValidation() {
+        return false;
+    }
+
 }

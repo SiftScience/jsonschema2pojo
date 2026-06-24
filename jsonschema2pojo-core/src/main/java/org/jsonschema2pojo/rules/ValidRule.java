@@ -16,25 +16,31 @@
 
 package org.jsonschema2pojo.rules;
 
-import javax.validation.Valid;
+import java.lang.annotation.Annotation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.jsonschema2pojo.Schema;
 import com.sun.codemodel.JFieldVar;
 
+import jakarta.validation.Valid;
+
 public class ValidRule implements Rule<JFieldVar, JFieldVar> {
-    
+
     private final RuleFactory ruleFactory;
-    
+
     public ValidRule(RuleFactory ruleFactory) {
         this.ruleFactory = ruleFactory;
     }
 
     @Override
     public JFieldVar apply(String nodeName, JsonNode node, JFieldVar field, Schema currentSchema) {
-        
+
         if (ruleFactory.getGenerationConfig().isIncludeJsr303Annotations()) {
-            field.annotate(Valid.class);
+            final Class<? extends Annotation> validClass
+                    = ruleFactory.getGenerationConfig().isUseJakartaValidation()
+                    ? Valid.class
+                    : javax.validation.Valid.class;
+            field.annotate(validClass);
         }
         
         return field;

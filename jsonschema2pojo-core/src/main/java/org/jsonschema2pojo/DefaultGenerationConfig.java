@@ -248,4 +248,12 @@ public class DefaultGenerationConfig implements GenerationConfig {
     public boolean isConstructorsRequiredPropertiesOnly() {
         return false;
     }
+
+    /**
+     * @return <code>false</code>
+     */
+    @Override
+    public boolean isUseJakartaValidation() {
+        return false;
+    }
 }
